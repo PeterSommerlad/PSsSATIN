@@ -1,0 +1,11 @@
+/Debug/
+/build/
+/Release/
+/PS_ASSERT_THROWS/
+/NDEBUG is set/
+/clang-Debug/
+/clang-NDEBUG is set/
+/clang-PS_ASSERT_THROWS/
+*.xml
+/Debug-g++13-mac/
+/Debug-g++15-mac/
