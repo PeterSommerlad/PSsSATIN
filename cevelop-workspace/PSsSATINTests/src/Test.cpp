@@ -537,9 +537,9 @@ check_does_compile(not,  ssi8 , <<  )
 check_does_compile(   ,  sui8 , << )
 check_does_compile(not,  ssi8 , >>  )
 check_does_compile(   ,  sui8 , >> )
-check_does_compile(not,  sui8 , + (1_sui8 << 010_sui8) + ) // too wide shift
+//check_does_compile(not,  sui8 , + (1_sui8 << 010_sui8) + ) // too wide shift
 check_does_compile(   ,  sui8 , + (1_sui8 << 7_sui8) + ) // not too wide shift
-check_does_compile(not,  sui8 , + (0x80_sui8 >> 010_sui8) + ) // too wide shift
+//check_does_compile(not,  sui8 , + (0x80_sui8 >> 010_sui8) + ) // too wide shift
 check_does_compile(   ,  sui8 , + (0x80_sui8 >> 7_sui8) + ) // not too wide shift
 static_assert(0_sui8 % 0_sui8 == 0_sui8);
 check_does_compile(   ,  sui8 ,  % ) // modulo 0 is defined to return 0
@@ -729,10 +729,17 @@ static_assert(2_sui8  == (v1u_8  << v1u_8));
 static_assert(2_sui16 == (v1u_16 << v1u_8));
 static_assert(2_sui32 == (v1u_32 << v1u_8));
 static_assert(2_sui64 == (v1u_64 << v1u_8));
-check_does_compile(not,  sui8 , + v1u_8 << 8_sui8 +) // overflow detect
-check_does_compile(not,  sui16 , + v1u_16 << 16_sui8 +) // overflow detect
-check_does_compile(not,  sui32 , + v1u_32 << 32_sui8 +) // overflow detect
-check_does_compile(not,  sui64 , + v1u_64 << 64_sui8 +) // overflow detect
+
+// Overflow causes 0, not UB or errors:
+//check_does_compile(not,  sui8 , + v1u_8 << 8_sui8 +) // overflow detect
+static_assert(0_sui8 == v1u_8 << 8_sui8);
+//check_does_compile(not,  sui16 , + v1u_16 << 16_sui8 +) // overflow detect
+static_assert(0_sui16 == v1u_16 << 16_sui8);
+//check_does_compile(not,  sui32 , + v1u_32 << 32_sui8 +) // overflow detect
+static_assert(0_sui32 == v1u_32 << 32_sui8);
+//check_does_compile(not,  sui64 , + v1u_64 << 64_sui8 +) // overflow detect
+static_assert(0_sui64 == v1u_64 << 64_sui8);
+
 
 // RShift operations (on unsigned)
 
@@ -740,11 +747,17 @@ static_assert(0_sui8  == (v1u_8  >> v1u_8));
 static_assert(0_sui16 == (v1u_16 >> v1u_8));
 static_assert(0_sui32 == (v1u_32 >> v1u_8));
 static_assert(0_sui64 == (v1u_64 >> v1u_8));
-check_does_compile(not,  sui8 , + maxu_8 >> 8_sui8 +) // overflow detect
-check_does_compile(not,  sui16 , + maxu_16 >> 16_sui8 +) // overflow detect
-check_does_compile(not,  sui32 , + maxu_32 >> 32_sui8 +) // overflow detect
-check_does_compile(not,  sui64 , + maxu_64 >> 64_sui8 +) // overflow detect
-check_does_compile(not,  sui64 , + maxu_64 >> maxu_64 +) // overflow detect
+
+// Overflow causes 0, not UB or errors:
+//check_does_compile(not,  sui8 , + maxu_8 >> 8_sui8 +) // overflow detect
+static_assert(0_sui8 == maxu_8 >> 8_sui8);
+//check_does_compile(not,  sui16 , + maxu_16 >> 16_sui8 +) // overflow detect
+static_assert(0_sui16 == maxu_16 >> 16_sui8);
+//check_does_compile(not,  sui32 , + maxu_32 >> 32_sui8 +) // overflow detect
+static_assert(0_sui32 == maxu_32 >> 32_sui8);
+//check_does_compile(not,  sui64 , + maxu_64 >> 64_sui8 +) // overflow detect
+static_assert(0_sui64 == maxu_64 >> 64_sui8);
+//check_does_compile(not,  sui64 , + maxu_64 >> maxu_64 +) // overflow detect
 
 // the following does not compile due to signed integer overflow on 32bit int
 //static_assert(static_cast<uint16_t>(0xffffu)* static_cast<uint16_t>(0xffffu));

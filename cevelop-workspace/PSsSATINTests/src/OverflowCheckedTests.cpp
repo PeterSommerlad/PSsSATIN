@@ -88,12 +88,14 @@ void u16DecrementOverflowDetected(){
 
 void u16LShiftOverflowDetected(){
     auto const val{ 1_sui16 };
-    ASSERT_THROWS(std::ignore = val << 16_sui8, exception_t);
+    //ASSERT_THROWS(std::ignore = val << 16_sui8, exception_t);
+    ASSERT_EQUAL(0_sui16, val << 16_sui8);
 }
 
 void u16RShiftOverflowDetected(){
-    auto const val{ 1_sui16 };
-    ASSERT_THROWS(std::ignore = val >> 16_sui8, exception_t);
+    auto const val{ 0xffff_sui16 };
+    //ASSERT_THROWS(std::ignore = val >> 16_sui8, exception_t);
+    ASSERT_EQUAL(0_sui16, val >> 16_sui8);
 }
 
 void si8incrementOverflow(){

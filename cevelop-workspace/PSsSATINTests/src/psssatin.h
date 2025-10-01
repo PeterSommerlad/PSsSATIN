@@ -11,34 +11,12 @@
 #endif
 
 // check out https://locklessinc.com/articles/sat_arithmetic/ as possible implementation strategy
-// what should happen on div by zero or modulo by zero
-// define to non-zero for self-kill with core dump, testing requires 0 for throw
-#ifndef PSSSATIN_SHOULD_RAISE
-#define PSSSATIN_SHOULD_RAISE 0
-#endif
-
-#if PSSSATIN_SHOULD_RAISE
-#include <csignal>
-// SIGFPE dumps core (unless prohibited by OS, i.e., ulimit -c 0, macos cores are more tricky to get
-#define PSSSATIN_RAISE_SIGFPE() ::raise(SIGFPE)
-#else
-#define PSSSATIN_RAISE_SIGFPE()
-#endif
-
-#define ps_assert( cond, msg) \
-   if (not (cond)) { PSSSATIN_RAISE_SIGFPE() ; throw(#msg); } ;
-
-// NDEBUG causes std::terminate on errors, unless SIGFPE is raised
-#ifdef NDEBUG
-#define NOEXCEPT_WITH_THROWING_ASSERTS noexcept(true)
-#else
-#define NOEXCEPT_WITH_THROWING_ASSERTS noexcept(false)
-#endif
 
 
 
 
-namespace psssatin { // Peter Sommerlad's simple Overflow Detecting Integral Numbers PSsODIN
+
+namespace psssatin { // Peter Sommerlad's simple SATuration Integral Numbers PSsSATIN
 
 
 // unsigned 
@@ -176,10 +154,6 @@ using promoted_t = // will promote keeping signedness
                 , unsigned
                 , int >
             , ULT<E>>;
-
-
-
-
 }
 
 
@@ -346,6 +320,8 @@ concept an_integer = detail_::is_known_integer_v<T>;
 #endif
 
 #ifndef __cpp_lib_saturation_arithmetic
+
+// TODO: implement instead: https://locklessinc.com/articles/sat_arithmetic/
 namespace non_builtin {
 // like built-ins __builtin_add_overflow return true on overflow
 template<an_integer T>
@@ -533,9 +509,6 @@ abs_promoted_and_extended_as_unsigned(E val) noexcept
 
 
 
-
-
-
 template<an_integer T>
 [[nodiscard]]
 constexpr auto
@@ -558,7 +531,7 @@ from_int(T val) noexcept {
 template<a_saturatingint TO, an_integer FROM>
 [[nodiscard]]
 constexpr auto
-from_int_to(FROM val) NOEXCEPT_WITH_THROWING_ASSERTS
+from_int_to(FROM val) noexcept
 {
     using result_t = TO;
     using ultr = std::underlying_type_t<result_t>;
@@ -595,7 +568,7 @@ from_int_to(FROM val) NOEXCEPT_WITH_THROWING_ASSERTS
 // negation for signed types only, two's complement
 template<a_saturatingint E>
 constexpr E
-operator-(E l) NOEXCEPT_WITH_THROWING_ASSERTS
+operator-(E l) noexcept
 requires std::numeric_limits<E>::is_signed
 {
     if (l == std::numeric_limits<E>::min()) return std::numeric_limits<E>::max();
@@ -607,14 +580,14 @@ requires std::numeric_limits<E>::is_signed
 
 template<a_saturatingint E>
 constexpr E&
-operator++(E& l) NOEXCEPT_WITH_THROWING_ASSERTS
+operator++(E& l) noexcept
 {
     return l = static_cast<E>(1) + l;
 }
 
 template<a_saturatingint E>
 constexpr E
-operator++(E& l, int) NOEXCEPT_WITH_THROWING_ASSERTS
+operator++(E& l, int) noexcept
 {
     auto result=l;
     ++l;
@@ -622,14 +595,14 @@ operator++(E& l, int) NOEXCEPT_WITH_THROWING_ASSERTS
 }
 template<a_saturatingint E>
 constexpr E&
-operator--(E& l) NOEXCEPT_WITH_THROWING_ASSERTS
+operator--(E& l) noexcept
 {
     return l = l - static_cast<E>(1);
 }
 
 template<a_saturatingint E>
 constexpr E
-operator--(E& l, int) NOEXCEPT_WITH_THROWING_ASSERTS
+operator--(E& l, int) noexcept
 {
     auto result=l;
     --l;
@@ -640,12 +613,9 @@ operator--(E& l, int) NOEXCEPT_WITH_THROWING_ASSERTS
 
 // arithmetic
 
-//// TODO: continue compile time tests for operators below
-
-
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto
-operator+(LEFT l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator+(LEFT l, RIGHT r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     // handle sign extension
@@ -655,7 +625,7 @@ requires same_signedness<LEFT,RIGHT>
     ult const left{static_cast<ult>(l)};
     ult const right{static_cast<ult>(r)};
 #ifdef __cpp_lib_saturation_arithmetic
-    result= std::add_sat<ult>(left,right) ;//+ !std::is_constant_evaluated(); // force runtime error
+    result= std::add_sat<ult>(left,right) ;//+ !std::is_constant_evaluated(); // compilation check to force runtime error
 #else
     if (add_overflow(left,right,&result)){
         if constexpr(std::numeric_limits<result_t>::is_signed){
@@ -670,7 +640,7 @@ requires same_signedness<LEFT,RIGHT>
 
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
-operator+=(LEFT &l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator+=(LEFT &l, RIGHT r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"psssatin: adding too large integer type");
@@ -680,7 +650,7 @@ requires same_signedness<LEFT,RIGHT>
 
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto
-operator-(LEFT l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator-(LEFT l, RIGHT r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
@@ -703,7 +673,7 @@ requires same_signedness<LEFT,RIGHT>
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
-operator-=(LEFT &l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator-=(LEFT &l, RIGHT r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"subtracting too large integer type");
@@ -714,7 +684,7 @@ requires same_signedness<LEFT,RIGHT>
 
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto
-operator*(LEFT l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator*(LEFT l, RIGHT r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
@@ -738,7 +708,7 @@ requires same_signedness<LEFT,RIGHT>
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
-operator*=(LEFT &l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator*=(LEFT &l, RIGHT r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"multiplying too large integer type");
@@ -747,7 +717,7 @@ requires same_signedness<LEFT,RIGHT>
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto
-operator/(LEFT const l, RIGHT const r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator/(LEFT const l, RIGHT const r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
@@ -774,7 +744,7 @@ requires same_signedness<LEFT,RIGHT>
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
-operator/=(LEFT &l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator/=(LEFT &l, RIGHT r) noexcept
 requires same_signedness<LEFT,RIGHT>
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"dividing by too large integer type");
@@ -783,7 +753,7 @@ requires same_signedness<LEFT,RIGHT>
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto
-operator%(LEFT l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator%(LEFT l, RIGHT r) noexcept
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
@@ -800,7 +770,7 @@ requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::U
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
 operator%=(LEFT &l, RIGHT r) noexcept
-requires same_signedness<LEFT,RIGHT> && std::is_unsigned_v<detail_::ULT<LEFT>>
+requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"dividing by too large integer type");
     l = static_cast<LEFT>(l%r);
@@ -874,25 +844,18 @@ requires std::is_unsigned_v<detail_::ULT<LEFT>>
 
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr LEFT
-operator<<(LEFT l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator<<(LEFT l, RIGHT r) noexcept
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
 {
-#pragma GCC diagnostic push
-#if defined(__GNUG__)
-#if defined(__clang__)
-#pragma clang diagnostic ignored "-Wexceptions"
-
-#else
-#pragma GCC diagnostic ignored "-Wterminate"
-#endif
-#endif
-    ps_assert( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(LEFT)*CHAR_BIT , "psssatin: trying to left-shift by too many bits");
-#pragma GCC diagnostic pop
-    return static_cast<LEFT>(promote_keep_signedness(l)<<promote_keep_signedness(r));
+    if( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(LEFT)*CHAR_BIT){
+        return static_cast<LEFT>(promote_keep_signedness(l)<<promote_keep_signedness(r));
+    } else {
+        return LEFT{}; // zero
+    }
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
-operator<<=(LEFT &l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator<<=(LEFT &l, RIGHT r) noexcept
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
 {
     l = (l<<r);
@@ -900,25 +863,18 @@ requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::U
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr LEFT
-operator>>(LEFT l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator>>(LEFT l, RIGHT r) noexcept
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
 {
-#pragma GCC diagnostic push
-#if defined(__GNUG__)
-#if defined(__clang__)
-#pragma clang diagnostic ignored "-Wexceptions"
-
-#else
-#pragma GCC diagnostic ignored "-Wterminate"
-#endif
-#endif
-    ps_assert( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(LEFT)*CHAR_BIT , "psssatin: trying to right-shift by too many bits");
-#pragma GCC diagnostic pop
-    return static_cast<LEFT>(promote_keep_signedness(l)>>promote_keep_signedness(r));
+    if( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(LEFT)*CHAR_BIT){
+        return static_cast<LEFT>(promote_keep_signedness(l)>>promote_keep_signedness(r));
+    } else {
+        return LEFT{}; // zero
+    }
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
-operator>>=(LEFT &l, RIGHT r) NOEXCEPT_WITH_THROWING_ASSERTS
+operator>>=(LEFT &l, RIGHT r) noexcept
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
 {
     l = (l>>r);
@@ -932,7 +888,6 @@ std::ostream& operator<<(std::ostream &out, a_saturatingint auto value){
 }
 
 }
-#undef NOEXCEPT_WITH_THROWING_ASSERTS
 #undef ps_assert
 #undef PSSSATIN_RAISE_SIGFPE
 #undef PSSSATIN_SHOULD_RAISE
