@@ -487,26 +487,6 @@ promote_and_extend_to_unsigned(E val) noexcept
        using s_result_t = std::make_signed_t<u_result_t>;
        return static_cast<u_result_t>(static_cast<s_result_t>(promote_keep_signedness(val)));// promote with sign extension
 }
-template<an_integer TARGET, a_saturatingint E>
-[[nodiscard]]
-constexpr auto
-abs_promoted_and_extended_as_unsigned(E val) noexcept
- requires (std::numeric_limits<TARGET>::is_signed)
-{ // promote to unsigned for wrap around arithmetic removing sign if negative
-  // return just the bits for std::numeric_limits<TARGET>::min()
-       using promoted_t = detail_::promoted_t<E>;
-       using u_result_t = std::conditional_t< (sizeof(TARGET) > sizeof(promoted_t)),
-                std::make_unsigned_t<TARGET>, std::make_unsigned_t<promoted_t > >;
-       static_assert(std::is_unsigned_v<u_result_t>);
-       using s_result_t = std::make_signed_t<u_result_t>;
-       s_result_t value = promote_keep_signedness(val);
-       if (val < E{} && value > std::numeric_limits<s_result_t>::min()){
-           return static_cast<u_result_t>(-static_cast<s_result_t>(value)); // cannot overflow
-       } else {
-           return static_cast<u_result_t>(value);
-       }
-}
-
 
 
 template<an_integer T>
@@ -888,8 +868,5 @@ std::ostream& operator<<(std::ostream &out, a_saturatingint auto value){
 }
 
 }
-#undef ps_assert
-#undef PSSSATIN_RAISE_SIGFPE
-#undef PSSSATIN_SHOULD_RAISE
 
 #endif /* SRC_PSSSATIN_ */
