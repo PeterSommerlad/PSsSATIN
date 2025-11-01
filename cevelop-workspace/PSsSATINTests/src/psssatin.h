@@ -10,14 +10,7 @@
 #include <numeric> // C++26 saturation arithmetic
 #endif
 
-// check out https://locklessinc.com/articles/sat_arithmetic/ as possible implementation strategy
-
-
-
-
-
 namespace psssatin { // Peter Sommerlad's simple SATuration Integral Numbers PSsSATIN
-
 
 // unsigned 
 enum class [[nodiscard]] sui8: std::uint8_t { psssatin_tag_to_prevent_mixing_other_enums };
