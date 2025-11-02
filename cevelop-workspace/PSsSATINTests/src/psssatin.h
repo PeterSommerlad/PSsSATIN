@@ -301,7 +301,7 @@ promote_to_unsigned(E val) noexcept
 
 // deliberately not std::integral, because of bool and characters!
 template<typename T>
-concept an_integer = detail_::is_known_integer_v<T>;
+concept sized_integer = detail_::is_known_integer_v<T>;
 
 #ifdef __has_builtin
 #if __has_builtin(__builtin_add_overflow)
@@ -317,7 +317,7 @@ concept an_integer = detail_::is_known_integer_v<T>;
 // TODO: implement instead: https://locklessinc.com/articles/sat_arithmetic/
 namespace non_builtin {
 // like built-ins __builtin_add_overflow return true on overflow
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool non_builtin_add_overflow(T l, T r, T* result) noexcept {
     if constexpr (std::numeric_limits<T>::is_signed){
@@ -347,7 +347,7 @@ constexpr bool non_builtin_add_overflow(T l, T r, T* result) noexcept {
     }
     return true;
 }
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool non_builtin_sub_overflow(T l, T r, T* result) noexcept {
     if constexpr (std::numeric_limits<T>::is_signed){
@@ -377,7 +377,7 @@ constexpr bool non_builtin_sub_overflow(T l, T r, T* result) noexcept {
     }
     return true;
 }
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool non_builtin_mul_overflow(T l, T r, T* result) noexcept {
     if constexpr (std::numeric_limits<T>::is_signed){
@@ -432,34 +432,34 @@ constexpr bool non_builtin_mul_overflow(T l, T r, T* result) noexcept {
 
 
 #ifdef HAVE_GCC_OVERFLOW_CHECKING
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool add_overflow(T l, T r, T* result) noexcept {
     return __builtin_add_overflow(l,r,result);
 }
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool sub_overflow(T l, T r, T* result) noexcept {
     return __builtin_sub_overflow(l,r,result);
 }
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool mul_overflow(T l, T r, T* result) noexcept {
     return __builtin_mul_overflow(l,r,result);
 }
 
 #else // DIY
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool add_overflow(T l, T r, T* result) noexcept {
     return non_builtin::non_builtin_add_overflow(l,r,result);
 }
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool sub_overflow(T l, T r, T* result) noexcept {
     return non_builtin::non_builtin_sub_overflow(l,r,result);
 }
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr bool mul_overflow(T l, T r, T* result) noexcept {
     return non_builtin::non_builtin_mul_overflow(l,r,result);
@@ -470,7 +470,7 @@ constexpr bool mul_overflow(T l, T r, T* result) noexcept {
 #endif
 
 
-template<an_integer TARGET, a_saturatingint E>
+template<sized_integer TARGET, a_saturatingint E>
 [[nodiscard]]
 constexpr auto
 promote_and_extend_to_unsigned(E val) noexcept
@@ -482,7 +482,7 @@ promote_and_extend_to_unsigned(E val) noexcept
 }
 
 
-template<an_integer T>
+template<sized_integer T>
 [[nodiscard]]
 constexpr auto
 from_int(T val) noexcept {
@@ -501,7 +501,7 @@ from_int(T val) noexcept {
     return static_cast<result_t>(val); // no need to check, result_t corresponds to input T's range
 }
 // path tests are compile-time checked:
-template<a_saturatingint TO, an_integer FROM>
+template<a_saturatingint TO, sized_integer FROM>
 [[nodiscard]]
 constexpr auto
 from_int_to(FROM val) noexcept
