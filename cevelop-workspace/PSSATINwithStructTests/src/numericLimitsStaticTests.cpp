@@ -6,7 +6,7 @@
 /* File: ../generatenumericlmitstests.sh
 #!/bin/sh
 
-for safeint in si8 si16 si32 si64 sui8 ui16 ui32 ui64
+for safeint in ssi8 ssi16 ssi32 ssi64 sui8 sui16 sui32 sui64
 do
 
 for func in min max lowest epsilon round_error infinity quiet_NaN signaling_NaN denorm_min
@@ -24,7 +24,7 @@ do
 done
 
   echo "static_assert(not std::numeric_limits<$safeint>::traps);"
-  echo "static_assert(std::numeric_limits<$safeint>::is_modulo);"
+  echo "static_assert(not std::numeric_limits<$safeint>::is_modulo);"
 
 done
 
@@ -63,7 +63,7 @@ static_assert(std::numeric_limits<ssi8>::is_bounded == std::numeric_limits<ULT<s
 static_assert(std::numeric_limits<ssi8>::tinyness_before == std::numeric_limits<ULT<ssi8>>::tinyness_before);
 static_assert(std::numeric_limits<ssi8>::round_style == std::numeric_limits<ULT<ssi8>>::round_style);
 static_assert(not std::numeric_limits<ssi8>::traps);
-static_assert(std::numeric_limits<ssi8>::is_modulo);
+static_assert(not std::numeric_limits<ssi8>::is_modulo);
 static_assert(std::numeric_limits<ssi16>::min() == from_int(std::numeric_limits<ULT<ssi16>>::min()) );
 static_assert(std::numeric_limits<ssi16>::max() == from_int(std::numeric_limits<ULT<ssi16>>::max()) );
 static_assert(std::numeric_limits<ssi16>::lowest() == from_int(std::numeric_limits<ULT<ssi16>>::lowest()) );
@@ -95,7 +95,7 @@ static_assert(std::numeric_limits<ssi16>::is_bounded == std::numeric_limits<ULT<
 static_assert(std::numeric_limits<ssi16>::tinyness_before == std::numeric_limits<ULT<ssi16>>::tinyness_before);
 static_assert(std::numeric_limits<ssi16>::round_style == std::numeric_limits<ULT<ssi16>>::round_style);
 static_assert(not std::numeric_limits<ssi16>::traps);
-static_assert(std::numeric_limits<ssi16>::is_modulo);
+static_assert(not std::numeric_limits<ssi16>::is_modulo);
 static_assert(std::numeric_limits<ssi32>::min() == from_int(std::numeric_limits<ULT<ssi32>>::min()) );
 static_assert(std::numeric_limits<ssi32>::max() == from_int(std::numeric_limits<ULT<ssi32>>::max()) );
 static_assert(std::numeric_limits<ssi32>::lowest() == from_int(std::numeric_limits<ULT<ssi32>>::lowest()) );
@@ -127,7 +127,7 @@ static_assert(std::numeric_limits<ssi32>::is_bounded == std::numeric_limits<ULT<
 static_assert(std::numeric_limits<ssi32>::tinyness_before == std::numeric_limits<ULT<ssi32>>::tinyness_before);
 static_assert(std::numeric_limits<ssi32>::round_style == std::numeric_limits<ULT<ssi32>>::round_style);
 static_assert(not std::numeric_limits<ssi32>::traps);
-static_assert(std::numeric_limits<ssi32>::is_modulo);
+static_assert(not std::numeric_limits<ssi32>::is_modulo);
 static_assert(std::numeric_limits<ssi64>::min() == from_int(std::numeric_limits<ULT<ssi64>>::min()) );
 static_assert(std::numeric_limits<ssi64>::max() == from_int(std::numeric_limits<ULT<ssi64>>::max()) );
 static_assert(std::numeric_limits<ssi64>::lowest() == from_int(std::numeric_limits<ULT<ssi64>>::lowest()) );
@@ -159,7 +159,7 @@ static_assert(std::numeric_limits<ssi64>::is_bounded == std::numeric_limits<ULT<
 static_assert(std::numeric_limits<ssi64>::tinyness_before == std::numeric_limits<ULT<ssi64>>::tinyness_before);
 static_assert(std::numeric_limits<ssi64>::round_style == std::numeric_limits<ULT<ssi64>>::round_style);
 static_assert(not std::numeric_limits<ssi64>::traps);
-static_assert(std::numeric_limits<ssi64>::is_modulo);
+static_assert(not std::numeric_limits<ssi64>::is_modulo);
 static_assert(std::numeric_limits<sui8>::min() == from_int(std::numeric_limits<ULT<sui8>>::min()) );
 static_assert(std::numeric_limits<sui8>::max() == from_int(std::numeric_limits<ULT<sui8>>::max()) );
 static_assert(std::numeric_limits<sui8>::lowest() == from_int(std::numeric_limits<ULT<sui8>>::lowest()) );
@@ -191,7 +191,7 @@ static_assert(std::numeric_limits<sui8>::is_bounded == std::numeric_limits<ULT<s
 static_assert(std::numeric_limits<sui8>::tinyness_before == std::numeric_limits<ULT<sui8>>::tinyness_before);
 static_assert(std::numeric_limits<sui8>::round_style == std::numeric_limits<ULT<sui8>>::round_style);
 static_assert(not std::numeric_limits<sui8>::traps);
-static_assert(std::numeric_limits<sui8>::is_modulo);
+static_assert(not std::numeric_limits<sui8>::is_modulo);
 static_assert(std::numeric_limits<sui16>::min() == from_int(std::numeric_limits<ULT<sui16>>::min()) );
 static_assert(std::numeric_limits<sui16>::max() == from_int(std::numeric_limits<ULT<sui16>>::max()) );
 static_assert(std::numeric_limits<sui16>::lowest() == from_int(std::numeric_limits<ULT<sui16>>::lowest()) );
@@ -223,7 +223,7 @@ static_assert(std::numeric_limits<sui16>::is_bounded == std::numeric_limits<ULT<
 static_assert(std::numeric_limits<sui16>::tinyness_before == std::numeric_limits<ULT<sui16>>::tinyness_before);
 static_assert(std::numeric_limits<sui16>::round_style == std::numeric_limits<ULT<sui16>>::round_style);
 static_assert(not std::numeric_limits<sui16>::traps);
-static_assert(std::numeric_limits<sui16>::is_modulo);
+static_assert(not std::numeric_limits<sui16>::is_modulo);
 static_assert(std::numeric_limits<sui32>::min() == from_int(std::numeric_limits<ULT<sui32>>::min()) );
 static_assert(std::numeric_limits<sui32>::max() == from_int(std::numeric_limits<ULT<sui32>>::max()) );
 static_assert(std::numeric_limits<sui32>::lowest() == from_int(std::numeric_limits<ULT<sui32>>::lowest()) );
@@ -255,7 +255,7 @@ static_assert(std::numeric_limits<sui32>::is_bounded == std::numeric_limits<ULT<
 static_assert(std::numeric_limits<sui32>::tinyness_before == std::numeric_limits<ULT<sui32>>::tinyness_before);
 static_assert(std::numeric_limits<sui32>::round_style == std::numeric_limits<ULT<sui32>>::round_style);
 static_assert(not std::numeric_limits<sui32>::traps);
-static_assert(std::numeric_limits<sui32>::is_modulo);
+static_assert(not std::numeric_limits<sui32>::is_modulo);
 static_assert(std::numeric_limits<sui64>::min() == from_int(std::numeric_limits<ULT<sui64>>::min()) );
 static_assert(std::numeric_limits<sui64>::max() == from_int(std::numeric_limits<ULT<sui64>>::max()) );
 static_assert(std::numeric_limits<sui64>::lowest() == from_int(std::numeric_limits<ULT<sui64>>::lowest()) );
@@ -287,4 +287,4 @@ static_assert(std::numeric_limits<sui64>::is_bounded == std::numeric_limits<ULT<
 static_assert(std::numeric_limits<sui64>::tinyness_before == std::numeric_limits<ULT<sui64>>::tinyness_before);
 static_assert(std::numeric_limits<sui64>::round_style == std::numeric_limits<ULT<sui64>>::round_style);
 static_assert(not std::numeric_limits<sui64>::traps);
-static_assert(std::numeric_limits<sui64>::is_modulo);
+static_assert(not std::numeric_limits<sui64>::is_modulo);

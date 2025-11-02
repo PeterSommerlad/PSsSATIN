@@ -149,7 +149,7 @@ using promoted_t = // will promote keeping signedness
             , ULT<E>>;
 }
 
-
+using detail_::ULT;
 template<typename E>
 concept a_saturatingint = detail_::is_saturatingint_v<E>;
 
@@ -218,9 +218,9 @@ template<psssatin::a_saturatingint type>
 
     static constexpr bool is_iec559 =  numeric_limits<ult>::is_iec559;
     static constexpr bool is_bounded =  numeric_limits<ult>::is_bounded;
-    static constexpr bool is_modulo =  true;
+    static constexpr bool is_modulo =  false; // saturation arithmetic never modulo
 
-    static constexpr bool traps = false;
+    static constexpr bool traps = false; // saturation/safe arithmetic never traps
     static constexpr bool tinyness_before =  numeric_limits<ult>::tinyness_before;
     static constexpr float_round_style round_style =  numeric_limits<ult>::round_style;
   };

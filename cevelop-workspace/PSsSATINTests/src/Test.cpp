@@ -3,12 +3,12 @@
 #include "ide_listener.h"
 #include "xml_listener.h"
 #include "cute_runner.h"
-#include "CodeGenBenchmark.h"
-#include <type_traits>
-#include <cstddef>
 #include "OverflowCheckedTests.h"
 #include "NonBuiltInOverflowDetectionTests.h"
 #include "psssatin.h"
+#include "CodeGenBenchmark.h"
+#include <type_traits>
+#include <cstddef>
 
 
 
@@ -1481,6 +1481,11 @@ void checkedFromInt(){
 
 }
 
+void DemonstrateSaturationArithmetic(){
+	auto const x = 50'000_ssi32;
+	ASSERT_EQUAL(0x7fff'ffff_ssi32, x * x);
+}
+
 
 
 
@@ -1598,6 +1603,7 @@ bool runAllTests(int argc, char const *argv[]) {
     s.push_back(CUTE(ui64postincrement));
     s.push_back(CUTE(ui64predecrement));
     s.push_back(CUTE(ui64postdecrement));
+    s.push_back(CUTE(DemonstrateSaturationArithmetic));
 	cute::xml_file_opener xmlfile(argc, argv);
     cute::xml_listener<cute::ide_listener<>> lis(xmlfile.out);
     auto runner = cute::makeRunner(lis, argc, argv);
@@ -1607,7 +1613,7 @@ bool runAllTests(int argc, char const *argv[]) {
     cute::suite OverflowCheckedTests = make_suite_OverflowCheckedTests();
     success &= runner(OverflowCheckedTests, "OverflowCheckedTests");
     cute::suite NonBuiltInOverflowDetectionTests = make_suite_NonBuiltInOverflowDetectionTests();
-    success &= runner(NonBuiltInOverflowDetectionTests, "NonBuiltInOverflowDetectionTests");
+	success &= runner(NonBuiltInOverflowDetectionTests, "NonBuiltInOverflowDetectionTests");
     return success;
 }
 

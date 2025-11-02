@@ -1,4 +1,3 @@
-#define PRIVATE_PUBLIC_FOR_COMPILE_TESTS public
 #include "satins.h"
 
 using namespace satins::literals;
