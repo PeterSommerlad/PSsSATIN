@@ -354,6 +354,7 @@ static_assert(v1_32 / vminus1_16 == -1_ssi32 );
 static_assert(v1_32 / vminus1_8  == -1_ssi32 );
 static_assert(v1_16 / vminus1_64 == -1_ssi64 );
 static_assert(v1_16 / vminus1_32 == -1_ssi32 );
+static_assert(vminus1_16 == -1_ssi16);
 static_assert(v1_16 / vminus1_16 == -1_ssi16 );
 static_assert(v1_16 / vminus1_8  == -1_ssi16 );
 static_assert(v1_8  / vminus1_64 == -1_ssi64 );
@@ -784,7 +785,7 @@ void ui16canbexoredwith(){
 }
 
 void ui16canbenegated(){
-    ASSERT_EQUAL(0XA55A_sui16, ~0x5AA5_sui16 );
+    ASSERT_EQUAL(0xA55A_sui16, ~0x5AA5_sui16 );
 }
 
 void ui16canbeleftshifted(){

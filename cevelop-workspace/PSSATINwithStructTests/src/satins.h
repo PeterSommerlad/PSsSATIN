@@ -133,7 +133,7 @@ constexpr bool non_builtin_mul_overflow(T l, T r, T* result) noexcept {
         if constexpr(sizeof(T) == sizeof(std::int64_t)){
             bool resultnegative { (l < 0) != (r < 0) };
             uint64_t res{};
-            auto abs64 { [](int64_t value_which_should_not_be_referred_to_from_user_code) -> uint64_t { return value_which_should_not_be_referred_to_from_user_code < 0? 1ULL + ~static_cast<uint64_t>(value_which_should_not_be_referred_to_from_user_code):static_cast<uint64_t>(value_which_should_not_be_referred_to_from_user_code);} };
+            auto abs64 { [](int64_t value) -> uint64_t { return value < 0? 1ULL + ~static_cast<uint64_t>(value_which_should_not_be_referred_to_from_user_code):static_cast<uint64_t>(value);} };
             if (not non_builtin_mul_overflow(abs64(l), abs64(r), &res) ){
                 if (resultnegative) {
                     if (res <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max())+1ull){
@@ -258,29 +258,29 @@ using promoted_t = // will promote the underlying type keeping signedness
 template<a_saturatingint E>
 [[nodiscard]]
 constexpr auto
-promote_keep_signedness(E value_which_should_not_be_referred_to_from_user_code) noexcept
+promote_keep_signedness(E value) noexcept
 { // promote keeping signedness
-    return static_cast<promoted_t<E>>(static_cast<ULT<E>>(value_which_should_not_be_referred_to_from_user_code));// promote with sign extension
+    return static_cast<promoted_t<E>>(static_cast<ULT<E>>(value));// promote with sign extension
 }
 
 
 template<a_saturatingint E>
 [[nodiscard]]
 constexpr auto
-promote_to_unsigned(E value_which_should_not_be_referred_to_from_user_code) noexcept
+promote_to_unsigned(E value) noexcept
 { // promote to unsigned for wrap around arithmetic
     using u_result_t = std::make_unsigned_t<promoted_t<E>>;
-    return static_cast<u_result_t>(promote_keep_signedness(value_which_should_not_be_referred_to_from_user_code));
+    return static_cast<u_result_t>(promote_keep_signedness(value));
 }
 template<sized_integer TARGET, a_saturatingint E>
 [[nodiscard]]
 constexpr auto
-promote_and_extend_to_unsigned(E value_which_should_not_be_referred_to_from_user_code) noexcept
+promote_and_extend_to_unsigned(E value) noexcept
 { // promote to unsigned for wrap around arithmetic, with sign extension if needed
        using u_result_t = std::conditional_t< (sizeof(TARGET) > sizeof(promoted_t<E>)),
                 std::make_unsigned_t<TARGET>, std::make_unsigned_t<promoted_t<E> > >;
        using s_result_t = std::make_signed_t<u_result_t>;
-       return static_cast<u_result_t>(static_cast<s_result_t>(promote_keep_signedness(value_which_should_not_be_referred_to_from_user_code)));// promote with sign extension
+       return static_cast<u_result_t>(static_cast<s_result_t>(promote_keep_signedness(value)));// promote with sign extension
 }
 
 
@@ -293,6 +293,37 @@ same_signedness_v = std::numeric_limits<LEFT>::is_signed == std::numeric_limits<
 template<typename LEFT, typename RIGHT>
 concept same_signedness = same_signedness_v<LEFT,RIGHT>;
 
+// path tests are compile-time checked:
+template<a_saturatingint TO, sized_integer FROM>
+[[nodiscard]]
+constexpr auto
+from_int_to(FROM value) noexcept
+{
+    using result_t = TO;
+    using ultr = ULT<result_t>;
+    ultr val = static_cast<ultr>(value);
+
+    if constexpr (std::is_unsigned_v<ultr>){
+        if constexpr (std::is_signed_v<FROM>){
+            if (value < FROM{}){
+                return result_t{}; // zero
+            }// value is positive below
+        }
+        if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+                return std::numeric_limits<result_t>::max();
+        }
+    } else { // to signed
+        if constexpr (std::is_signed_v<FROM>) {
+            if (static_cast<int64_t>(value) < std::numeric_limits<ultr>::min()) {
+                return std::numeric_limits<result_t>::min();
+            }
+        }
+        if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+            return std::numeric_limits<result_t>::max();
+        }
+    }
+    return static_cast<result_t>(val); // value is checked above
+}
 
 
 template<sized_integer INT>
@@ -302,10 +333,10 @@ struct Satin{
     }
     friend constexpr auto operator<=>(Satin, Satin) noexcept = default;
     explicit constexpr operator INT() const noexcept { return value_which_should_not_be_referred_to_from_user_code;}
-    template<std::integral T>
+    template<sized_integer T>
     explicit constexpr Satin(T v)
     requires (not std::same_as<INT,detail_::plain<T>>)
-    :value_which_should_not_be_referred_to_from_user_code(v){}
+    :value_which_should_not_be_referred_to_from_user_code(from_int_to<Satin>(v)){}
 
     // member/friend operators
 
@@ -314,8 +345,9 @@ struct Satin{
     operator-() const noexcept
     requires std::numeric_limits<INT>::is_signed
     {
-        if (value_which_should_not_be_referred_to_from_user_code == std::numeric_limits<INT>::min()) return std::numeric_limits<Satin>::max();
-        return static_cast<Satin>(static_cast<INT>(1u + ~detail_::promote_to_unsigned(*this)));
+        if (value_which_should_not_be_referred_to_from_user_code == std::numeric_limits<INT>::min())
+              return std::numeric_limits<Satin>::max(); // prevent wrapping
+        return Satin(static_cast<INT>(-value_which_should_not_be_referred_to_from_user_code));
     }
 
     // increment/decrement
@@ -453,6 +485,7 @@ struct Satin{
     requires same_signedness<Satin,RIGHT>
     {
         using result_t=std::conditional_t<sizeof(Satin)>=sizeof(RIGHT),Satin,RIGHT>;
+        //integral promotion is a bitch
         using ult = ULT<result_t>;
         ult const numerator{static_cast<ult>(static_cast<ULT<Satin>>(l))};
         ult const denominator{static_cast<ult>(static_cast<ULT<RIGHT>>(r))};
@@ -471,7 +504,7 @@ struct Satin{
         } else {
             if (0 == denominator) return std::numeric_limits<result_t>::max();
         }
-        return static_cast<result_t>(numerator/denominator);
+        return static_cast<result_t>(static_cast<ult>(numerator/denominator));
 
     }
     template<a_saturatingint RIGHT>
@@ -574,7 +607,7 @@ struct Satin{
     operator~(Satin l) noexcept
     requires std::is_unsigned_v<ULT<Satin>>
     {
-        return static_cast<Satin>(~detail_::promote_keep_signedness(l));
+        return static_cast<Satin>(static_cast<ULT<Satin>>(~detail_::promote_keep_signedness(l)));
     }
 
 
@@ -746,37 +779,6 @@ from_int(T value_which_should_not_be_referred_to_from_user_code) noexcept {
                   conditional_t<is_compatible_integer_v<std::int32_t,T>, ssi32,
                    conditional_t<is_compatible_integer_v<std::int64_t,T>, ssi64, cannot_convert_integer>>>>>>>>;
     return static_cast<result_t>(value_which_should_not_be_referred_to_from_user_code); // no need to check, result_t corresponds to input T's range
-}
-// path tests are compile-time checked:
-template<a_saturatingint TO, sized_integer FROM>
-[[nodiscard]]
-constexpr auto
-from_int_to(FROM value_which_should_not_be_referred_to_from_user_code) noexcept
-{
-    using result_t = TO;
-    using ultr = ULT<result_t>;
-    if constexpr(std::is_unsigned_v<ultr>){
-        if constexpr(std::is_signed_v<FROM>){
-            if (value_which_should_not_be_referred_to_from_user_code < FROM{}){// 0
-                return std::numeric_limits<result_t>::min(); // 0
-            }
-        }
-    } else {
-        if constexpr (std::is_signed_v<FROM>){
-            if constexpr (sizeof(ultr) < sizeof(FROM)){
-                if (value_which_should_not_be_referred_to_from_user_code < static_cast<FROM>(std::numeric_limits<ultr>::min())) {
-                    return std::numeric_limits<result_t>::min();
-                }
-            }
-        }
-    }
-    if constexpr (sizeof(ultr) <= sizeof(FROM)){
-        if (value_which_should_not_be_referred_to_from_user_code > static_cast<FROM>(std::numeric_limits<ultr>::max())){
-            return std::numeric_limits<result_t>::max();
-        }
-    }
-
-    return static_cast<result_t>(value_which_should_not_be_referred_to_from_user_code); // cast is checked above
 }
 
 } // NS satins

@@ -175,7 +175,11 @@ static_assert(min_32 == min_32 / vminus1_8);
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_32 +) // overflow detect
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_16 +) // overflow detect
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_8 +) // overflow detect
-static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(static_cast<ULT<decltype(min_16)>>(min_16))  );
+
+static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(static_cast<int64_t>(static_cast<ULT<ssi16>>(min_16)))  );
+//static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(std::numeric_limits<int16_t>::min())  );
+static_assert(min_16 / vminus1_64 == static_cast<ssi64>(0x8000));
+
 static_assert(min_16 / vminus1_32 == 0x8000_ssi32 );
 static_assert(min_16 == min_16 / vminus1_16);
 static_assert(min_16 == min_16 / vminus1_8);
