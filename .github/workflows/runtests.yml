@@ -12,16 +12,16 @@ jobs:
         working-directory: ${{github.workspace}}/build
         shell: bash
         env:
-          CC:   clang
-          CXX:  clang
+          CC:   gcc
+          CXX:  g++
         run: cmake ${{github.workspace}}/cevelop-workspace/PSsSATINTests/
         
       - name: Build
         working-directory: ${{github.workspace}}/build
         shell: bash
         env:
-          CC:   clang
-          CXX:  clang
+          CC:   gcc
+          CXX:  g++
         run: cmake --build . -- CXX_FLAGS="-std=c++20 -O2"
         
       - name: Test
@@ -35,16 +35,16 @@ jobs:
         working-directory: ${{github.workspace}}/build2
         shell: bash
         env:
-          CC:   clang
-          CXX:  clang
+          CC:   gcc
+          CXX:  g++
         run: cmake ${{github.workspace}}/cevelop-workspace/PSSATINwithStructTests/
         
       - name: Build
         working-directory: ${{github.workspace}}/build2
         shell: bash
         env:
-          CC:   clang
-          CXX:  clang
+          CC:   gcc
+          CXX:  g++
         run: cmake --build . -- CXX_FLAGS="-std=c++20 -O2"
         
       - name: Test
