@@ -1,4 +1,6 @@
 #include "psssatin.h"
+
+#include <cstddef>
 using namespace psssatin::literals;
 
 static_assert(0x8000_sui16 == 32768_sui16);

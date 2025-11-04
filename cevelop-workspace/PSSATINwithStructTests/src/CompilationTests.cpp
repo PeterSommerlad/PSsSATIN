@@ -1,4 +1,5 @@
 #include "satins.h"
+#include <cstddef>
 
 using namespace satins::literals;
 using namespace satins;
