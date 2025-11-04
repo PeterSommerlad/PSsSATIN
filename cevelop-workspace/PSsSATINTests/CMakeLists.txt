@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(PSsODIN)
+project(PSsSATINTests)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -23,13 +23,13 @@ endif()
 
 file(GLOB SOURCES src/*.cpp)
 
-add_executable(PSsODINTests ${SOURCES} )
+add_executable(PSsSATINTests ${SOURCES} )
 
-target_include_directories(PSsODINTests PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/cute)
+target_include_directories(PSsSATINTests PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/cute)
 
 enable_testing()
 
-add_test(NAME test COMMAND PSsODINTests)
+add_test(NAME test COMMAND PSsSATINTests)
 
 
 message("")
