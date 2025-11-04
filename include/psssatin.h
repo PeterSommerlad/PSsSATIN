@@ -501,35 +501,39 @@ from_int(T val) noexcept {
     return static_cast<result_t>(val); // no need to check, result_t corresponds to input T's range
 }
 // path tests are compile-time checked:
-template<a_saturatingint TO, sized_integer FROM>
+template<a_saturatingint result_t, sized_integer FROM>
 [[nodiscard]]
 constexpr auto
-from_int_to(FROM val) noexcept
+from_int_to(FROM value) noexcept
 {
-    using result_t = TO;
     using ultr = std::underlying_type_t<result_t>;
-    if constexpr(std::is_unsigned_v<ultr>){
-        if constexpr(std::is_signed_v<FROM>){
-            if (val < FROM{}){// 0
-                return std::numeric_limits<result_t>::min(); // 0
-            }
-        }
-    } else {
-        if constexpr (std::is_signed_v<FROM>){
-            if constexpr (sizeof(ultr) < sizeof(FROM)){
-                if (val < static_cast<FROM>(std::numeric_limits<ultr>::min())) {
-                    return std::numeric_limits<result_t>::min();
-                }
-            }
-        }
-    }
-    if constexpr (sizeof(ultr) <= sizeof(FROM)){
-        if (val > static_cast<FROM>(std::numeric_limits<ultr>::max())){
-            return std::numeric_limits<result_t>::max();
-        }
-    }
+#ifdef __cpp_lib_saturation_arithmetic
+    return static_cast<result_t>(std::saturate_cast<ultr>(value));
+#else
+    if constexpr(not std::is_same_v<ultr,FROM>) {
+         if constexpr (std::is_unsigned_v<ultr>){
+             if constexpr (std::is_signed_v<FROM>){
+                 if (value < FROM{}){
+                     return result_t{}; // zero
+                 }// value is positive below
+             }
+             if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+                 return std::numeric_limits<result_t>::max();
+             }
+         } else { // to signed
+             if constexpr (std::is_signed_v<FROM>) {
+                 if (static_cast<int64_t>(value) < std::numeric_limits<ultr>::min()) {
+                     return std::numeric_limits<result_t>::min();
+                 }
+             }
+             if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+                 return std::numeric_limits<result_t>::max();
+             }
+         }
+     }
 
-    return static_cast<result_t>(val); // cast is checked above
+    return static_cast<result_t>(value); // cast is checked above
+#endif
 }
 
 
@@ -701,7 +705,7 @@ requires same_signedness<LEFT,RIGHT>
     if constexpr (std::numeric_limits<result_t>::is_signed){
         // detect -min / -1 which is overflow
         if( numerator == std::numeric_limits<ult>::min() && denominator == -1){
-            return std::numeric_limits<result_t>::min();
+            return std::numeric_limits<result_t>::max();
         }
         bool result_is_negative = (numerator < 0) != (denominator < 0);
         if (0 == denominator){

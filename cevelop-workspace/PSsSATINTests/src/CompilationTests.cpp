@@ -1,7 +1,5 @@
-#include "satins.h"
-
-using namespace satins::literals;
-using namespace satins;
+#include "psssatin.h"
+using namespace psssatin::literals;
 
 static_assert(0x8000_sui16 == 32768_sui16);
 
@@ -14,7 +12,7 @@ from_int_compiles=false;
 
 template<typename FROM>
 constexpr bool
-from_int_compiles<FROM,std::void_t<decltype(satins::from_int(FROM{}))>> = true;
+from_int_compiles<FROM,std::void_t<decltype(psssatin::from_int(FROM{}))>> = true;
 
 static_assert(from_int_compiles<unsigned char>);
 static_assert(from_int_compiles<signed char>);
@@ -45,7 +43,7 @@ static_assert(! from_int_compiles<wchar_t>);
 static_assert(! from_int_compiles<char16_t>);
 static_assert(! from_int_compiles<char32_t>);
 
-using namespace satins;
+using namespace psssatin;
 
 static_assert(sizeof(long) == sizeof(long long)); // on my mac...
 static_assert(42_ssi64 == from_int(42L));
@@ -69,14 +67,12 @@ enum class enum4test{};
 static_assert(!detail_::is_saturatingint_v<enum4test>);
 static_assert(!detail_::is_saturatingint_v<std::byte>);
 static_assert(!detail_::is_saturatingint_v<int>);
-using satins::detail_::promote_keep_signedness;
-using satins::ULT;
 static_assert(std::is_same_v<unsigned,decltype(promote_keep_signedness(1_sui8)+1)>);
 static_assert(std::is_same_v<unsigned,decltype(promote_keep_signedness(2_sui16)+1)>);
 static_assert(std::is_same_v<int,decltype(promote_keep_signedness(1_ssi8))>);
 static_assert(std::is_same_v<int,decltype(promote_keep_signedness(2_ssi16))>);
-static_assert(std::is_same_v<uint8_t,ULT<sui8>>);
-static_assert(std::is_same_v<uint16_t,ULT<sui16>>);
+static_assert(std::is_same_v<uint8_t,std::underlying_type_t<sui8>>);
+static_assert(std::is_same_v<uint16_t,std::underlying_type_t<sui16>>);
 
 
 //static_assert(promote_keep_signedness(0xffff_sui16 * 0xffff_sui16) == 0x1u); // wraps
@@ -89,11 +85,6 @@ static_assert(std::is_same_v<uint16_t,ULT<sui16>>);
 //static_assert(0x7fff'ffff + 2); // doesn't compile, integer overflow
 //static_assert(-0x7fff'ffff_ssi32 - 2_ssi32 == 0x7fff'ffff_ssi32);
 //static_assert(-0x7fff'ffff - 2); // doesn't compile, integer overflow
-
-template<typename T>
-constexpr auto to_underlying(T val){
-    return static_cast<ULT<T>>(val);
-}
 
 static_assert(std::is_same_v<int,decltype(+to_underlying(42_sui8))>);
 static_assert(std::is_same_v<uint8_t,decltype(to_underlying(42_sui8))>);
@@ -453,7 +444,7 @@ static_assert(min_32 / vminus1_64 == 0x8000'0000_ssi64 );
 static_assert(min_32 / vminus1_32 == max_32 );
 static_assert(min_32 / vminus1_16 == max_32 );
 static_assert(min_32 / vminus1_8  == max_32 );
-static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(static_cast<int16_t>(min_16))  );
+static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(min_16)  );
 static_assert(min_16 / vminus1_32 == 0x8000_ssi32 );
 static_assert(min_16 / vminus1_16 == max_16 );
 static_assert(min_16 / vminus1_8  == max_16 );
@@ -502,12 +493,12 @@ static_assert(100_ssi32 / 9_ssi64 == 11_ssi64);
 static_assert(-100_ssi32 / 9_ssi64 == -11_ssi64);
 static_assert(100_ssi32 / -9_ssi64 == -11_ssi64);
 
-static_assert(std::numeric_limits<ssi32>::min() / 1_ssi32 == std::numeric_limits<ssi32>::min()); //
-static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limits<ssi32>::max()); //
+static_assert(std::numeric_limits<ssi32>::min() / 1_ssi32 == std::numeric_limits<ssi32>::min()); // wraps
+static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limits<ssi32>::max()); // wraps
 
 
 namespace compile_checks {
-using namespace satins;
+using namespace psssatin;
 template<auto ...value>
 using consume_value = void;
 
@@ -643,7 +634,7 @@ static_assert(max_32 == min_32 / vminus1_8);
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_32 +) // overflow detect
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_16 +) // overflow detect
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_8 +) // overflow detect
-static_assert(min_16 / vminus1_64 == -(0_ssi64+min_16)  );
+static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(min_16)  );
 static_assert(min_16 / vminus1_32 == 0x8000_ssi32 );
 static_assert(max_16 == min_16 / vminus1_16);
 static_assert(max_16 == min_16 / vminus1_8);
@@ -1084,8 +1075,8 @@ template<typename T>
 constexpr bool
 is_integer = is_unsigned<T>||is_signed<T>;
 
-static_assert(is_integer<ULT<sui16>>);
+static_assert(is_integer<std::underlying_type_t<sui16>>);
 static_assert(!is_integer<sui16>);
-static_assert(is_integer<ULT<ssi16>>);
+static_assert(is_integer<std::underlying_type_t<ssi16>>);
 static_assert(!is_integer<ssi16>);
 }

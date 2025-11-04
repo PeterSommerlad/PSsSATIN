@@ -133,7 +133,7 @@ constexpr bool non_builtin_mul_overflow(T l, T r, T* result) noexcept {
         if constexpr(sizeof(T) == sizeof(std::int64_t)){
             bool resultnegative { (l < 0) != (r < 0) };
             uint64_t res{};
-            auto abs64 { [](int64_t value) -> uint64_t { return value < 0? 1ULL + ~static_cast<uint64_t>(value_which_should_not_be_referred_to_from_user_code):static_cast<uint64_t>(value);} };
+            auto abs64 { [](int64_t value) -> uint64_t { return value < 0? 1ULL + ~static_cast<uint64_t>(value):static_cast<uint64_t>(value);} };
             if (not non_builtin_mul_overflow(abs64(l), abs64(r), &res) ){
                 if (resultnegative) {
                     if (res <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max())+1ull){
@@ -294,35 +294,38 @@ template<typename LEFT, typename RIGHT>
 concept same_signedness = same_signedness_v<LEFT,RIGHT>;
 
 // path tests are compile-time checked:
-template<a_saturatingint TO, sized_integer FROM>
+template<a_saturatingint result_t, sized_integer FROM>
 [[nodiscard]]
 constexpr auto
 from_int_to(FROM value) noexcept
 {
-    using result_t = TO;
     using ultr = ULT<result_t>;
-    ultr val = static_cast<ultr>(value);
-
-    if constexpr (std::is_unsigned_v<ultr>){
-        if constexpr (std::is_signed_v<FROM>){
-            if (value < FROM{}){
-                return result_t{}; // zero
-            }// value is positive below
-        }
-        if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+#ifdef __cpp_lib_saturation_arithmetic
+    return static_cast<result_t>(std::saturate_cast<ultr>(value));
+#else
+   if constexpr(not std::is_same_v<ultr,FROM>) {
+        if constexpr (std::is_unsigned_v<ultr>){
+            if constexpr (std::is_signed_v<FROM>){
+                if (value < FROM{}){
+                    return result_t{}; // zero
+                }// value is positive below
+            }
+            if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
                 return std::numeric_limits<result_t>::max();
-        }
-    } else { // to signed
-        if constexpr (std::is_signed_v<FROM>) {
-            if (static_cast<int64_t>(value) < std::numeric_limits<ultr>::min()) {
-                return std::numeric_limits<result_t>::min();
+            }
+        } else { // to signed
+            if constexpr (std::is_signed_v<FROM>) {
+                if (static_cast<int64_t>(value) < std::numeric_limits<ultr>::min()) {
+                    return std::numeric_limits<result_t>::min();
+                }
+            }
+            if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+                return std::numeric_limits<result_t>::max();
             }
         }
-        if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
-            return std::numeric_limits<result_t>::max();
-        }
     }
-    return static_cast<result_t>(val); // value is checked above
+    return static_cast<result_t>(static_cast<ultr>(value)); // value is checked above
+#endif
 }
 
 
@@ -493,7 +496,7 @@ struct Satin{
         if constexpr (std::numeric_limits<result_t>::is_signed){
             // detect -min / -1 which is overflow
             if( numerator == std::numeric_limits<ult>::min() && denominator == -1){
-                return std::numeric_limits<result_t>::min();
+                return std::numeric_limits<result_t>::max();
             }
             bool result_is_negative = (numerator < 0) != (denominator < 0);
             if (0 == denominator){
@@ -670,9 +673,9 @@ using sui64 = Satin<std::uint64_t>;
 
 inline namespace literals {
 consteval
-sui8 operator""_sui8(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if (value_which_should_not_be_referred_to_from_user_code <= std::numeric_limits<std::uint8_t>::max()) {
-        return sui8(static_cast<std::uint8_t>(value_which_should_not_be_referred_to_from_user_code));
+sui8 operator""_sui8(unsigned long long value) {
+    if (value <= std::numeric_limits<std::uint8_t>::max()) {
+        return sui8(static_cast<std::uint8_t>(value));
     } else {
         throw "integral constant too large"; // trigger compile-time error
     }
@@ -680,9 +683,9 @@ sui8 operator""_sui8(unsigned long long value_which_should_not_be_referred_to_fr
 
 
 consteval
-sui16 operator""_sui16(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if (value_which_should_not_be_referred_to_from_user_code <= std::numeric_limits<std::uint16_t>::max()) {
-        return sui16(static_cast<std::uint16_t>(value_which_should_not_be_referred_to_from_user_code));
+sui16 operator""_sui16(unsigned long long value) {
+    if (value <= std::numeric_limits<std::uint16_t>::max()) {
+        return sui16(static_cast<std::uint16_t>(value));
     } else {
         throw "integral constant too large"; // trigger compile-time error
     }
@@ -690,9 +693,9 @@ sui16 operator""_sui16(unsigned long long value_which_should_not_be_referred_to_
 
 
 consteval
-sui32 operator""_sui32(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if (value_which_should_not_be_referred_to_from_user_code <= std::numeric_limits<uint32_t>::max()) {
-        return sui32(static_cast<std::uint32_t>(value_which_should_not_be_referred_to_from_user_code));
+sui32 operator""_sui32(unsigned long long value) {
+    if (value <= std::numeric_limits<uint32_t>::max()) {
+        return sui32(static_cast<std::uint32_t>(value));
     } else {
         throw "integral constant too large"; // trigger compile-time error
     }
@@ -700,13 +703,13 @@ sui32 operator""_sui32(unsigned long long value_which_should_not_be_referred_to_
 
 
 consteval
-sui64 operator""_sui64(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if constexpr (sizeof(sui64) < sizeof(value_which_should_not_be_referred_to_from_user_code)){
-        if (value_which_should_not_be_referred_to_from_user_code > 0xffff'ffff'fffffffful) {
+sui64 operator""_sui64(unsigned long long value) {
+    if constexpr (sizeof(sui64) < sizeof(value)){
+        if (value > 0xffff'ffff'fffffffful) {
             throw "integral constant too large"; // trigger compile-time error
         }
     }
-    return sui64(static_cast<std::uint64_t>(value_which_should_not_be_referred_to_from_user_code));
+    return sui64(static_cast<std::uint64_t>(value));
 }
 
 }
@@ -720,9 +723,9 @@ using ssi64 = Satin<std::int64_t>;
 
 inline namespace literals {
 consteval
-ssi8 operator""_ssi8(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if (value_which_should_not_be_referred_to_from_user_code <= std::numeric_limits<std::int8_t>::max()) {
-        return ssi8(static_cast<int8_t>(value_which_should_not_be_referred_to_from_user_code));
+ssi8 operator""_ssi8(unsigned long long value) {
+    if (value <= std::numeric_limits<std::int8_t>::max()) {
+        return ssi8(static_cast<int8_t>(value));
     } else {
         throw "integral constant too large"; // trigger compile-time error
     }
@@ -730,9 +733,9 @@ ssi8 operator""_ssi8(unsigned long long value_which_should_not_be_referred_to_fr
 
 
 consteval
-ssi16 operator""_ssi16(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if (value_which_should_not_be_referred_to_from_user_code <= std::numeric_limits<int16_t>::max()) {
-        return ssi16(static_cast<int16_t>(value_which_should_not_be_referred_to_from_user_code));
+ssi16 operator""_ssi16(unsigned long long value) {
+    if (value <= std::numeric_limits<int16_t>::max()) {
+        return ssi16(static_cast<int16_t>(value));
     } else {
         throw "integral constant too large"; // trigger compile-time error
     }
@@ -740,9 +743,9 @@ ssi16 operator""_ssi16(unsigned long long value_which_should_not_be_referred_to_
 
 
 consteval
-ssi32 operator""_ssi32(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if (value_which_should_not_be_referred_to_from_user_code <= std::numeric_limits<int32_t>::max()) {
-        return ssi32(static_cast<int32_t>(value_which_should_not_be_referred_to_from_user_code));
+ssi32 operator""_ssi32(unsigned long long value) {
+    if (value <= std::numeric_limits<int32_t>::max()) {
+        return ssi32(static_cast<int32_t>(value));
     } else {
         throw "integral constant too large"; // trigger compile-time error
     }
@@ -750,9 +753,9 @@ ssi32 operator""_ssi32(unsigned long long value_which_should_not_be_referred_to_
 
 
 consteval
-ssi64 operator""_ssi64(unsigned long long value_which_should_not_be_referred_to_from_user_code) {
-    if (value_which_should_not_be_referred_to_from_user_code <= std::numeric_limits<int64_t>::max()) {
-        return ssi64(static_cast<int64_t>(value_which_should_not_be_referred_to_from_user_code));
+ssi64 operator""_ssi64(unsigned long long value) {
+    if (value <= std::numeric_limits<int64_t>::max()) {
+        return ssi64(static_cast<int64_t>(value));
     } else {
         throw "integral constant too large"; // trigger compile-time error
     }
@@ -765,7 +768,7 @@ ssi64 operator""_ssi64(unsigned long long value_which_should_not_be_referred_to_
 template<sized_integer T>
 [[nodiscard]]
 constexpr auto
-from_int(T value_which_should_not_be_referred_to_from_user_code) noexcept {
+from_int(T value) noexcept {
     using detail_::is_compatible_integer_v;
     using std::conditional_t;
     struct cannot_convert_integer{};
@@ -778,7 +781,7 @@ from_int(T value_which_should_not_be_referred_to_from_user_code) noexcept {
                  conditional_t<is_compatible_integer_v<std::int16_t,T>, ssi16,
                   conditional_t<is_compatible_integer_v<std::int32_t,T>, ssi32,
                    conditional_t<is_compatible_integer_v<std::int64_t,T>, ssi64, cannot_convert_integer>>>>>>>>;
-    return static_cast<result_t>(value_which_should_not_be_referred_to_from_user_code); // no need to check, result_t corresponds to input T's range
+    return static_cast<result_t>(value); // no need to check, result_t corresponds to input T's range
 }
 
 } // NS satins

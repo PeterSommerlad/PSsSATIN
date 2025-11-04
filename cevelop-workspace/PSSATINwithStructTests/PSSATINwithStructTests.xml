@@ -180,6 +180,98 @@
 		<testcase classname="OverflowCheckedTests" name="si64subfromMinOverflow"/>
 		<testcase classname="OverflowCheckedTests" name="ui64subfromZeroOverflow"/>
 	</testsuite>
-	<testsuite name="NonBuiltInOverflowDetectionTests" tests="0">
+	<testsuite name="NonBuiltInOverflowDetectionTests" tests="92">
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;long long&gt;::AddSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;long long&gt;::AddSiOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;long long&gt;::AddSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;long long&gt;::AddSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;long long&gt;::AddSiNoOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;long long&gt;::AddSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;int&gt;::AddSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;int&gt;::AddSiOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;int&gt;::AddSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;int&gt;::AddSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;int&gt;::AddSiNoOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;int&gt;::AddSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;short&gt;::AddSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;short&gt;::AddSiOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;short&gt;::AddSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;short&gt;::AddSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;short&gt;::AddSiNoOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;short&gt;::AddSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;signed char&gt;::AddSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;signed char&gt;::AddSiOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;signed char&gt;::AddSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;signed char&gt;::AddSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;signed char&gt;::AddSiNoOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedAddOverflow&lt;signed char&gt;::AddSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned long long&gt;::AddUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned long long&gt;::AddUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned int&gt;::AddUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned int&gt;::AddUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned short&gt;::AddUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned short&gt;::AddUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned char&gt;::AddUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedAddOverflow&lt;unsigned char&gt;::AddUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;long long&gt;::SubSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;long long&gt;::SubSiOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;long long&gt;::SubSiOverflowPmaxN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;long long&gt;::SubSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;long long&gt;::SubSiNoOverflowNPmax"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;int&gt;::SubSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;int&gt;::SubSiOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;int&gt;::SubSiOverflowPmaxN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;int&gt;::SubSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;int&gt;::SubSiNoOverflowNPmax"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;short&gt;::SubSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;short&gt;::SubSiOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;short&gt;::SubSiOverflowPmaxN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;short&gt;::SubSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;short&gt;::SubSiNoOverflowNPmax"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;signed char&gt;::SubSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;signed char&gt;::SubSiOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;signed char&gt;::SubSiOverflowPmaxN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;signed char&gt;::SubSiNoOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedSubOverflow&lt;signed char&gt;::SubSiNoOverflowNPmax"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned long long&gt;::SubUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned long long&gt;::SubUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned int&gt;::SubUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned int&gt;::SubUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned short&gt;::SubUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned short&gt;::SubUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned char&gt;::SubUnNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testUnSignedSubOverflow&lt;unsigned char&gt;::SubUnOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiNOOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiOverflowPmaxNmin"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiNoOverflowNminP1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiOverflowSqrtMaxplus1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;long long&gt;::MulSiOverflowSqrtMaxminus1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiNOOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiOverflowPmaxNmin"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiNoOverflowNminP1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiOverflowSqrtMaxplus1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;int&gt;::MulSiOverflowSqrtMaxminus1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiNOOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiOverflowPmaxNmin"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiNoOverflowNminP1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiOverflowSqrtMaxplus1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;short&gt;::MulSiOverflowSqrtMaxminus1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiNoOverflowPP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiNoOverflowNP"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiNOOverflowPN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiOverflowNN"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiOverflowPmaxNmin"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiNoOverflowNminP1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiOverflowSqrtMaxplus1"/>
+		<testcase classname="NonBuiltInOverflowDetectionTests" name="testSignedMulOverflow&lt;signed char&gt;::MulSiOverflowSqrtMaxminus1"/>
 	</testsuite>
 </testsuites>
