@@ -13,7 +13,7 @@ jobs:
         shell: bash
         env:
           CC:   gcc-latest
-          CXX:  g++-latest
+          CXX:  clang
         run: cmake ${{github.workspace}}/cevelop-workspace/PSsSATINTests/
         
       - name: Build
@@ -21,7 +21,7 @@ jobs:
         shell: bash
         env:
           CC:   gcc-latest
-          CXX:  g++-latest
+          CXX:  clang
         run: cmake --build . -- CXX_FLAGS="-std=c++20 -O2"
         
       - name: Test
@@ -36,7 +36,7 @@ jobs:
         shell: bash
         env:
           CC:   gcc-latest
-          CXX:  g++-latest
+          CXX:  clang
         run: cmake ${{github.workspace}}/cevelop-workspace/PSSATINwithStructTests/
         
       - name: Build
@@ -44,7 +44,7 @@ jobs:
         shell: bash
         env:
           CC:   gcc-latest
-          CXX:  g++-latest
+          CXX:  clang
         run: cmake --build . -- CXX_FLAGS="-std=c++20 -O2"
         
       - name: Test
