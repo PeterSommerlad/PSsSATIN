@@ -41,7 +41,7 @@
 		<testcase classname="AllTests" name="ui16canbecompared"/>
 		<testcase classname="AllTests" name="ui16canNotbecomparedwithui8"/>
 		<testcase classname="AllTests" name="ui32CanNotbeComparedwithlong"/>
-		<testcase classname="AllTests" name="_testing::signedIntegerBoundaryTestResultRecovery"/>
+		<testcase classname="AllTests" name="signedIntegerBoundaryTestResultRecovery"/>
 		<testcase classname="AllTests" name="si8preincrement"/>
 		<testcase classname="AllTests" name="si8postincrement"/>
 		<testcase classname="AllTests" name="si8predecrement"/>

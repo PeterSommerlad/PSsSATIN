@@ -5,6 +5,8 @@ using namespace satins::literals;
 using namespace satins;
 
 static_assert(0x8000_sui16 == 32768_sui16);
+static_assert(0x7fff_sui32 < 100000_sui32);
+static_assert(std::is_same_v<std::uint64_t,satins::ULT<satins::sui64>>);
 
 namespace _testing {
 
@@ -825,7 +827,8 @@ check_does_compile(    ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_
 check_does_compile(not ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_t>::min()-1)  +) // check would cause UB
 check_does_compile(not ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_t>::max()+1)  +) // check fails due to UB
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 // to signed from unsigned
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(42ull)  +) // ok conversion
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<int8_t>::min()+0)  +) // from unsigned too large
@@ -982,6 +985,8 @@ check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64
 check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64_t>::min()-1ll)  +) // unsigned overflow always OK
 check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64_t>::max()-std::numeric_limits<int64_t>::min())  +) // OK
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 // check negation detection
 check_does_compile(    ,  ssi8, +  (- max_8)  +) // ok conversion
 static_assert(max_8 == -min_8); // overflow
@@ -1052,7 +1057,7 @@ check_does_compile(    ,  sui8,  +  1_sui8  - 1_sui8  -) // same signedness
 check_does_compile(    ,  sui16, +  1_sui16 - 1_sui8  +) // same signedness
 check_does_compile(    ,  sui32, +  1_sui32 - 1_sui8  +) // same signedness
 check_does_compile(    ,  sui64, +  1_sui64 - 1_sui8  +) // same signedness
-
+#pragma GCC diagnostic pop
 
 }
 #undef check_does_compile

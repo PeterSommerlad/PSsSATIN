@@ -29,12 +29,13 @@ is_chartype_v =    std::is_same_v<char,CHAR>
 
 template<typename INT, typename TESTED>
 constexpr bool
-is_compatible_integer_v = std::is_same_v<TESTED,INT> ||
+is_compatible_integer_v = std::is_same_v<plain<TESTED>,plain<INT>> ||
    (   std::is_integral_v<TESTED>
    && not std::is_same_v<bool,TESTED>
    && not is_chartype_v<TESTED>
    && (std::is_unsigned_v<INT> == std::is_unsigned_v<TESTED>)
-   && std::numeric_limits<TESTED>::max() == std::numeric_limits<INT>::max() );
+   && std::numeric_limits<TESTED>::max() == std::numeric_limits<INT>::max()
+   );
 
 // only support the following sizes:
 template<typename TESTED>

@@ -10,10 +10,11 @@
 using namespace satins;
 using namespace satins::detail_;
 
+#ifndef __clang__
 
 template<typename INT>
 struct operations {
-    operations(std::initializer_list<INT> seedvalues):values{seedvalues}{};
+    operations(std::initializer_list<INT> seedvalues):values{std::begin(seedvalues),std::end(seedvalues)}{};
     std::vector<INT> values;
 
     auto sum() const {
@@ -335,6 +336,7 @@ void codegenSubtractionTest(){
 }
 
 }
+#endif
 
 
 void testUBSanWithSignedOverflow(){
@@ -353,12 +355,10 @@ void testUnSignedOverflowThrows(){
 
 }
 
-
 cute::suite make_suite_CodeGenBenchmark() {
 	cute::suite s { };
+#ifndef __clang__
 	s.push_back(CUTE(codegenAdditionTest));
-	s.push_back(CUTE(testUBSanWithSignedOverflow));
-	s.push_back(CUTE(testUnSignedOverflowThrows));
 	s.push_back(CUTE(codegenMultiplicationTest));
 	s.push_back(CUTE(codegenSumThirdsTest));
 	s.push_back(CUTE(codegenSubtractionTest));
@@ -378,5 +378,8 @@ cute::suite make_suite_CodeGenBenchmark() {
 	s.push_back(CUTE(int64::codegenMultiplicationTest));
 	s.push_back(CUTE(int64::codegenSumThirdsTest));
 	s.push_back(CUTE(int64::codegenSubtractionTest));
+#endif
+    s.push_back(CUTE(testUBSanWithSignedOverflow));
+    s.push_back(CUTE(testUnSignedOverflowThrows));
 	return s;
 }
