@@ -770,7 +770,7 @@ check_does_compile(   ,  ssi32, + std::numeric_limits<ssi32>::min() / -1_ssi32  
 static_assert(std::numeric_limits<ssi32>::min() / 1_ssi32 == std::numeric_limits<ssi32>::min()); // identity
 static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limits<ssi32>::max()); // saturation allows negation by /-1
 
-int from_int(...); // cause non-matching code below to SFINAE
+constexpr auto from_int(auto i){return i;} // cause non-matching code below to SFINAE
 
 
 check_does_compile(not ,  ssi8, + from_int(' ')  +) // invalid conversion
