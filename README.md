@@ -2,6 +2,12 @@
 
 simple SATurating Integral Numbers
 
+![tests](https://github.com/PeterSommerlad/PSsSATIN/actions/workflows/runtests.yml/badge.svg?branch=main)
+
+<br/>
+
+
+
 I provide two implementations of saturating integer arithmetic for signed and unsigned integers of sizes 8, 16, 32, 64 bits. 
 
 * [psssatin.h](include/psssatin.h) is using `enum class` types and corresponding operator overloading etc.
