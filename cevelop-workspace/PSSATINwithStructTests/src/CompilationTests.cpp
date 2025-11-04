@@ -454,7 +454,7 @@ static_assert(min_32 / vminus1_64 == 0x8000'0000_ssi64 );
 static_assert(min_32 / vminus1_32 == max_32 );
 static_assert(min_32 / vminus1_16 == max_32 );
 static_assert(min_32 / vminus1_8  == max_32 );
-static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(static_cast<int16_t>(min_16))  );
+static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(std::numeric_limits<int16_t>::min())  );
 static_assert(min_16 / vminus1_32 == 0x8000_ssi32 );
 static_assert(min_16 / vminus1_16 == max_16 );
 static_assert(min_16 / vminus1_8  == max_16 );
