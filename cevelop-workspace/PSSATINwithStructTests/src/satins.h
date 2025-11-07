@@ -225,7 +225,7 @@ constexpr bool mul_overflow(T l, T r, T* result) noexcept {
 
 
 template<sized_integer INT>
-struct Satin;
+struct [[nodiscard]] Satin;
 
 namespace detail_{
 template<typename T>
@@ -320,7 +320,7 @@ from_int_to(FROM value) noexcept
                     return std::numeric_limits<result_t>::min();
                 }
             }
-            if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+            if (value>0 && static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
                 return std::numeric_limits<result_t>::max();
             }
         }
@@ -331,7 +331,7 @@ from_int_to(FROM value) noexcept
 
 
 template<sized_integer INT>
-struct Satin{
+struct [[nodiscard]] Satin{
     constexpr Satin() noexcept:value_which_should_not_be_referred_to_from_user_code{}{}
     explicit constexpr Satin(std::same_as<INT> auto v) noexcept:value_which_should_not_be_referred_to_from_user_code(v){
     }

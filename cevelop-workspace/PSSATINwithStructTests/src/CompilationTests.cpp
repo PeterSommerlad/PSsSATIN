@@ -512,7 +512,7 @@ static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limit
 namespace compile_checks {
 using namespace satins;
 template<auto ...value>
-using consume_value = void;
+using consume_value = void; // want value computation
 
 
 
@@ -987,6 +987,22 @@ check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+
+static_assert(vminus1_8 == from_int_to<ssi8>(-1));
+static_assert(vminus1_16 == from_int_to<ssi16>(-1));
+static_assert(vminus1_32 == from_int_to<ssi32>(-1));
+static_assert(vminus1_64 == from_int_to<ssi64>(-1));
+
+static_assert(std::numeric_limits<ssi8>::min() == from_int_to<ssi8>(-0x7fff'ffff'ffff'ffffLL-1));
+static_assert(std::numeric_limits<ssi16>::min() == from_int_to<ssi16>(-0x7fff'ffff'ffff'ffffLL-1));
+static_assert(std::numeric_limits<ssi32>::min() == from_int_to<ssi32>(-0x7fff'ffff'ffff'ffffLL-1));
+static_assert(std::numeric_limits<ssi64>::min() == from_int_to<ssi64>(-0x7fff'ffff'ffff'ffffLL-1));
+
+static_assert(0_sui8 == from_int_to<sui8>(-1));
+static_assert(0_sui16 == from_int_to<sui16>(-1));
+static_assert(0_sui32 == from_int_to<sui32>(-1));
+static_assert(0_sui64 == from_int_to<sui64>(-1));
+
 // check negation detection
 check_does_compile(    ,  ssi8, +  (- max_8)  +) // ok conversion
 static_assert(max_8 == -min_8); // overflow
