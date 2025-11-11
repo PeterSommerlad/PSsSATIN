@@ -110,14 +110,14 @@ ssi64 operator""_ssi64(unsigned long long val) {
 
 
 
+
+namespace detail_ {
 template<typename T>
 using plain = std::remove_cvref_t<T>;
 
 template<typename T>
 concept an_enum = std::is_enum_v<plain<T>>;
 
-
-namespace detail_ {
 // from C++23
 template<an_enum T>
 constexpr bool
@@ -245,17 +245,15 @@ is_chartype_v =    std::is_same_v<char,CHAR>
                 || std::is_same_v<char16_t,CHAR>
                 || std::is_same_v<char32_t,CHAR> ;
 
-
-
 template<typename INT, typename TESTED>
 constexpr bool
-is_compatible_integer_v = std::is_same_v<TESTED,INT> ||
-   (   std::is_integral_v<TESTED>
-   && not std::is_same_v<bool,TESTED>
-   && not is_chartype_v<TESTED>
+is_compatible_integer_v = std::is_same_v<plain<TESTED>,INT> ||
+   (   std::is_integral_v<plain<TESTED>>
+   && not std::is_same_v<bool,plain<TESTED>>
+   && not is_chartype_v<plain<TESTED>>
    && (std::is_unsigned_v<INT> == std::is_unsigned_v<TESTED>)
-   && std::numeric_limits<TESTED>::max() == std::numeric_limits<INT>::max() );
-
+   && std::numeric_limits<plain<TESTED>>::max() == std::numeric_limits<INT>::max()
+   );
 
 template<typename TESTED>
 constexpr bool
@@ -314,7 +312,7 @@ concept sized_integer = detail_::is_known_integer_v<T>;
 
 #ifndef __cpp_lib_saturation_arithmetic
 
-// TODO: implement instead: https://locklessinc.com/articles/sat_arithmetic/
+namespace detail_ {
 namespace non_builtin {
 // like built-ins __builtin_add_overflow return true on overflow
 template<sized_integer T>
@@ -429,7 +427,7 @@ constexpr bool non_builtin_mul_overflow(T l, T r, T* result) noexcept {
     return true;
 }
 } // namespace non_builtin
-
+} // namespace detail_
 
 #ifdef HAVE_GCC_OVERFLOW_CHECKING
 template<sized_integer T>
@@ -526,7 +524,7 @@ from_int_to(FROM value) noexcept
                      return std::numeric_limits<result_t>::min();
                  }
              }
-             if (static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
+             if (value > 0 && static_cast<uint64_t>(value) > std::numeric_limits<ultr>::max()) {
                  return std::numeric_limits<result_t>::max();
              }
          }

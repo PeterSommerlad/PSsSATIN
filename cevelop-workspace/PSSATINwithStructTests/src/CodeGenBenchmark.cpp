@@ -8,13 +8,12 @@
 #include "satins.h"
 
 using namespace satins;
-using namespace satins::detail_;
 
-#ifndef __clang__
+#ifndef __clang__ /* macos XCode standard library bugs prevent compilation */
 
 template<typename INT>
 struct operations {
-    operations(std::initializer_list<INT> seedvalues):values{std::begin(seedvalues),std::end(seedvalues)}{};
+    operations(std::initializer_list<INT> seedvalues):values{seedvalues}{};
     std::vector<INT> values;
 
     auto sum() const {
@@ -36,7 +35,7 @@ struct operations {
 };
 
 std::initializer_list<int8_t> i8_seed{1,1,2,3,5,8/*,13,21,34,55,89*/};
-std::initializer_list<satins::ssi8> si8_seed{1_ssi8,1_ssi8,2_ssi8,3_ssi8,5_ssi8,8_ssi8/*,13_ssi8,21_ssi8,34_ssi8,55_ssi8,89_ssi8*/};
+std::initializer_list<ssi8> si8_seed{1_ssi8,1_ssi8,2_ssi8,3_ssi8,5_ssi8,8_ssi8/*,13_ssi8,21_ssi8,34_ssi8,55_ssi8,89_ssi8*/};
 
 auto sum(operations<int8_t> const &ops){
     return ops.sum();
@@ -94,7 +93,7 @@ void codegenSubtractionTest(){
 
 namespace int16 {
 std::initializer_list<int16_t> i16_seed{1,1,2,3,5,8,13,21,34,55};
-std::initializer_list<satins::ssi16> si16_seed{1_ssi16,1_ssi16,2_ssi16,3_ssi16,5_ssi16,8_ssi16,13_ssi16,21_ssi16,34_ssi16,55_ssi16};
+std::initializer_list<ssi16> si16_seed{1_ssi16,1_ssi16,2_ssi16,3_ssi16,5_ssi16,8_ssi16,13_ssi16,21_ssi16,34_ssi16,55_ssi16};
 
 auto sum(operations<int16_t> const &ops){
     return ops.sum();
@@ -164,7 +163,7 @@ void codegenSubtractionTest(){
 }
 namespace int32 {
 std::initializer_list<int32_t> i32_seed{1,1,2,3,5,8,13,21,34,55,89};
-std::initializer_list<satins::ssi32> si32_seed{1_ssi32,1_ssi32,2_ssi32,3_ssi32,5_ssi32,8_ssi32,13_ssi32,21_ssi32,34_ssi32,55_ssi32,89_ssi32};
+std::initializer_list<ssi32> si32_seed{1_ssi32,1_ssi32,2_ssi32,3_ssi32,5_ssi32,8_ssi32,13_ssi32,21_ssi32,34_ssi32,55_ssi32,89_ssi32};
 
 auto sum(operations<int32_t> const &ops){
     return ops.sum();
@@ -224,7 +223,7 @@ void codegenSubtractionTest(){
 namespace int64 {
 constexpr std::initializer_list<int64_t> i64_seed{1,1,2,3,5,8,13,21,34,55,89,
                                         144,233,377,610};
-constexpr std::initializer_list<satins::ssi64> si64_seed{1_ssi64,1_ssi64,2_ssi64,3_ssi64,5_ssi64,8_ssi64,13_ssi64,21_ssi64,34_ssi64,55_ssi64,89_ssi64,
+constexpr std::initializer_list<ssi64> si64_seed{1_ssi64,1_ssi64,2_ssi64,3_ssi64,5_ssi64,8_ssi64,13_ssi64,21_ssi64,34_ssi64,55_ssi64,89_ssi64,
     144_ssi64,233_ssi64,377_ssi64,610_ssi64};
 
 auto sum(operations<int64_t> const &ops){
@@ -284,7 +283,7 @@ void codegenSubtractionTest(){
 }
 namespace uint32 {
 std::initializer_list<uint32_t> ui32_seed{1,1,2,3,5,8,13,21,34,55,89};
-std::initializer_list<satins::sui32> uui32_seed{1_sui32,1_sui32,2_sui32,3_sui32,5_sui32,8_sui32,13_sui32,21_sui32,34_sui32,55_sui32,89_sui32};
+std::initializer_list<sui32> uui32_seed{1_sui32,1_sui32,2_sui32,3_sui32,5_sui32,8_sui32,13_sui32,21_sui32,34_sui32,55_sui32,89_sui32};
 
 auto sum(operations<uint32_t> const &ops){
     return ops.sum();
@@ -350,7 +349,7 @@ void testUBSanWithSignedOverflow(){
 
 void testUnSignedOverflowThrows(){
     auto x=0xffff_sui16;
-    ASSERT_EQUAL(std::numeric_limits<satins::sui16>::max(), x * x);
+    ASSERT_EQUAL(std::numeric_limits<sui16>::max(), x * x);
 //    ASSERT_THROWS(std::ignore = x * x, char const *);
 
 }

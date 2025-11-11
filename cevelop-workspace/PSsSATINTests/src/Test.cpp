@@ -1,23 +1,21 @@
-#include "TestForZeroReturnAssertWithNDEBUG.h"
+#include "psssatin.h"
 #include "cute.h"
 #include "ide_listener.h"
 #include "xml_listener.h"
 #include "cute_runner.h"
+#include "CodeGenBenchmark.h"
 #include "OverflowCheckedTests.h"
 #include "NonBuiltInOverflowDetectionTests.h"
-#include "psssatin.h"
-#include "CodeGenBenchmark.h"
 #include <type_traits>
 #include <cstddef>
 
 using namespace psssatin::literals;
-
-
+using namespace psssatin;
 
 
 void signedIntegerBoundaryTestResultRecovery(){
     // temporary testcase for getting static_asserts above right
-    ASSERT_EQUAL(0x8000'0000_ssi64, std::numeric_limits<psssatin::ssi32>::max() + 1_ssi64  );
+    ASSERT_EQUAL(0x8000'0000_ssi64, std::numeric_limits<ssi32>::max() + 1_ssi64  );
 }
 
 
@@ -168,7 +166,6 @@ void ui64postdecrement(){
     ASSERT_EQUAL(0_sui64,one);
 }
 void ui16intExists() {
-    using psssatin::sui16;
     auto large=0xff00_sui16;
     //0x10000_sui16; // compile error
     //ui16{0xfffff}; // narrowing detection
@@ -270,7 +267,7 @@ void ui16canbexoredwith(){
 }
 
 void ui16canbenegated(){
-    ASSERT_EQUAL(0XA55A_sui16, ~0x5AA5_sui16 );
+    ASSERT_EQUAL(0xA55A_sui16, ~0x5AA5_sui16 );
 }
 
 void ui16canbeleftshifted(){
@@ -339,7 +336,7 @@ void ui32CanNotbeComparedwithlong(){
 
 //    ASSERTM("check comparison", l != s && s < l && l >= s && !(l < s) && ! (l <= s));
 
-    auto ss = psssatin::from_int(s);
+    auto ss = from_int(s);
     ASSERTM("check comparison", l != ss && ss < l && l >= ss && !(l < ss) && ! (l <= ss));
 
 }
@@ -356,12 +353,12 @@ void si8Negation(){
 }
 
 void si8negationminintthrows(){
-    ASSERT_EQUAL(std::numeric_limits<psssatin::ssi8>::max(),-(std::numeric_limits<psssatin::ssi8>::min()));
-//    ASSERT_THROWS(std::ignore = -(std::numeric_limits<psssatin::ssi8>::min()), char const *);
+    ASSERT_EQUAL(std::numeric_limits<ssi8>::max(),-(std::numeric_limits<ssi8>::min()));
+//    ASSERT_THROWS(std::ignore = -(std::numeric_limits<ssi8>::min()), char const *);
 }
 
 void si8overflowIsDetected(){
-    ASSERT_EQUAL(std::numeric_limits<psssatin::ssi8>::max(),127_ssi8+2_ssi8 );
+    ASSERT_EQUAL(std::numeric_limits<ssi8>::max(),127_ssi8+2_ssi8 );
     //ASSERT_THROWS(std::ignore = 127_ssi8+2_ssi8, char const *);
 }
 
@@ -394,7 +391,6 @@ void ui8OutputAsInteger(){
 }
 
 void checkedFromInt(){
-    using namespace psssatin;
     ASSERT_EQUAL(255_sui8,from_int_to<sui8>(2400u));
     //ASSERT_THROWS(std::ignore = from_int_to<sui8>(2400u), char const *);
 
@@ -442,9 +438,6 @@ void testNoUBforunsigned() {
 }
 
 bool runAllTests(int argc, char const *argv[]) {
-    cute::suite TestForZeroReturnAssertWithNDEBUG = make_suite_TestForZeroReturnAssertWithNDEBUG();
-    TestForZeroReturnAssertWithNDEBUG.push_back(CUTE(cppnowtalk::testUBforint));
-    TestForZeroReturnAssertWithNDEBUG.push_back(CUTE(cppnowtalk::testNoUBforunsigned));
 
     cute::suite s { };
 
@@ -523,16 +516,17 @@ bool runAllTests(int argc, char const *argv[]) {
     s.push_back(CUTE(ui64predecrement));
     s.push_back(CUTE(ui64postdecrement));
     s.push_back(CUTE(DemonstrateSaturationArithmetic));
+    s.push_back(CUTE(cppnowtalk::testUBforint));
+    s.push_back(CUTE(cppnowtalk::testNoUBforunsigned));
 	cute::xml_file_opener xmlfile(argc, argv);
     cute::xml_listener<cute::ide_listener<>> lis(xmlfile.out);
     auto runner = cute::makeRunner(lis, argc, argv);
     bool success = runner(s, "AllTests");
     success = runner(make_suite_CodeGenBenchmark(),"CodeGenBenchmark") && success;
-    success &= runner(TestForZeroReturnAssertWithNDEBUG, "TestForZeroReturnAssertWithNDEBUG");
     cute::suite OverflowCheckedTests = make_suite_OverflowCheckedTests();
-    success &= runner(OverflowCheckedTests, "OverflowCheckedTests");
+    success = runner(OverflowCheckedTests, "OverflowCheckedTests") && success;
     cute::suite NonBuiltInOverflowDetectionTests = make_suite_NonBuiltInOverflowDetectionTests();
-	success &= runner(NonBuiltInOverflowDetectionTests, "NonBuiltInOverflowDetectionTests");
+	success = runner(NonBuiltInOverflowDetectionTests, "NonBuiltInOverflowDetectionTests") && success;
     return success;
 }
 

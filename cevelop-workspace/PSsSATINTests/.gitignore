@@ -9,3 +9,4 @@
 *.xml
 /Debug-g++13-mac/
 /Debug-g++15-mac/
+/Debug-g++15-C++26/

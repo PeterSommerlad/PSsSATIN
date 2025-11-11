@@ -29,12 +29,12 @@ is_chartype_v =    std::is_same_v<char,CHAR>
 
 template<typename INT, typename TESTED>
 constexpr bool
-is_compatible_integer_v = std::is_same_v<plain<TESTED>,plain<INT>> ||
-   (   std::is_integral_v<TESTED>
-   && not std::is_same_v<bool,TESTED>
-   && not is_chartype_v<TESTED>
+is_compatible_integer_v = std::is_same_v<plain<TESTED>,INT> ||
+   (   std::is_integral_v<plain<TESTED>>
+   && not std::is_same_v<bool,plain<TESTED>>
+   && not is_chartype_v<plain<TESTED>>
    && (std::is_unsigned_v<INT> == std::is_unsigned_v<TESTED>)
-   && std::numeric_limits<TESTED>::max() == std::numeric_limits<INT>::max()
+   && std::numeric_limits<plain<TESTED>>::max() == std::numeric_limits<INT>::max()
    );
 
 // only support the following sizes:
@@ -246,7 +246,6 @@ concept a_saturatingint = detail_::is_saturatingint_v<E>;
 template<typename C>
 using ULT=detail_::ULT_impl<detail_::plain<C>>::type;
 
-namespace detail_ {
 
 template<typename E>
 using promoted_t = // will promote the underlying type keeping signedness
@@ -263,6 +262,7 @@ promote_keep_signedness(E value) noexcept
 { // promote keeping signedness
     return static_cast<promoted_t<E>>(static_cast<ULT<E>>(value));// promote with sign extension
 }
+namespace detail_ {
 
 
 template<a_saturatingint E>
@@ -552,8 +552,6 @@ struct [[nodiscard]] Satin{
     operator&(Satin l, RIGHT r) noexcept
     requires std::is_unsigned_v<ULT<Satin>> && std::is_unsigned_v<ULT<RIGHT>>
     {
-        using detail_::promote_keep_signedness;
-
         using result_t=std::conditional_t<sizeof(Satin)>=sizeof(RIGHT),Satin,RIGHT>;
         return static_cast<result_t>(promote_keep_signedness(l)&promote_keep_signedness(r));
     }
@@ -572,7 +570,6 @@ struct [[nodiscard]] Satin{
     operator|(Satin l, RIGHT r) noexcept
     requires std::is_unsigned_v<ULT<Satin>> && std::is_unsigned_v<ULT<RIGHT>>
     {
-        using detail_::promote_keep_signedness;
         using result_t=std::conditional_t<sizeof(Satin)>=sizeof(RIGHT),Satin,RIGHT>;
         return static_cast<result_t>(promote_keep_signedness(l)|promote_keep_signedness(r));
     }
@@ -591,8 +588,6 @@ struct [[nodiscard]] Satin{
     operator^(Satin l, RIGHT r) noexcept
     requires std::is_unsigned_v<ULT<Satin>> && std::is_unsigned_v<ULT<RIGHT>>
     {
-        using detail_::promote_keep_signedness;
-
         using result_t=std::conditional_t<sizeof(Satin)>=sizeof(RIGHT),Satin,RIGHT>;
         return static_cast<result_t>(promote_keep_signedness(l)^promote_keep_signedness(r));
     }
@@ -611,7 +606,7 @@ struct [[nodiscard]] Satin{
     operator~(Satin l) noexcept
     requires std::is_unsigned_v<ULT<Satin>>
     {
-        return static_cast<Satin>(static_cast<ULT<Satin>>(~detail_::promote_keep_signedness(l)));
+        return static_cast<Satin>(static_cast<ULT<Satin>>(~promote_keep_signedness(l)));
     }
 
 
@@ -620,7 +615,6 @@ struct [[nodiscard]] Satin{
     operator<<(Satin l, RIGHT r) noexcept
     requires std::is_unsigned_v<ULT<Satin>> && std::is_unsigned_v<ULT<RIGHT>>
     {
-        using detail_::promote_keep_signedness;
         if( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(Satin)*CHAR_BIT){
             return static_cast<Satin>(promote_keep_signedness(l)<<promote_keep_signedness(r));
         } else {
@@ -639,7 +633,7 @@ struct [[nodiscard]] Satin{
     friend constexpr Satin
     operator>>(Satin l, RIGHT r) noexcept
     requires std::is_unsigned_v<ULT<Satin>> && std::is_unsigned_v<ULT<RIGHT>>
-    {   using detail_::promote_keep_signedness;
+    {
         if( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(Satin)*CHAR_BIT){
             return static_cast<Satin>(
                     promote_keep_signedness(l)>>promote_keep_signedness(r));
@@ -658,7 +652,7 @@ struct [[nodiscard]] Satin{
 
 
     friend std::ostream& operator<<(std::ostream &out, Satin value){
-        out << detail_::promote_keep_signedness(value);
+        out << promote_keep_signedness(value);
         return out;
     }
     // no need for private, makes compilability checks possible
@@ -666,6 +660,12 @@ struct [[nodiscard]] Satin{
     INT value_which_should_not_be_referred_to_from_user_code;
 };
 // unsigned
+
+template<typename T>
+constexpr auto to_underlying(T val){
+    return static_cast<ULT<T>>(val);
+}
+
 
 using sui8  = Satin<std::uint8_t >;
 using sui16 = Satin<std::uint16_t>;

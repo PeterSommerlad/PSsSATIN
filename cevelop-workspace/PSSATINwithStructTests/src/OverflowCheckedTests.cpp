@@ -10,24 +10,12 @@ using exception_t = char const *;
 
 void si16minnegateOverflows() {
     const auto minimum { std::numeric_limits<ssi16>::min() };
-    try {
-        std::ignore = -minimum;
-    } catch (char const * const exc){
-        std::string const msg{exc};
-        std::string const expectedend{"\"negating std::numeric_limits<E>::min()\""};
-        ASSERT_EQUALM(msg,expectedend, msg.substr(msg.size()-expectedend.size()));
-    }
+    ASSERT_EQUAL(std::numeric_limits<ssi16>::max(), -minimum);
 }
 
 void si16mindividedbyminus1Overflows(){
     const auto minimum { std::numeric_limits<ssi16>::min() };
-    try {
-        std::ignore = minimum / -1_ssi16;
-    } catch (exception_t const exc) {
-        std::string const msg{exc};
-        std::string const expectedend{"\"satins: signed division overflow\""};
-        ASSERT_EQUALM(msg,expectedend, msg.substr(msg.size()-expectedend.size()));
-    }
+    ASSERT_EQUAL(std::numeric_limits<ssi16>::max(), minimum / -1_ssi16);
 }
 
 
@@ -41,7 +29,6 @@ void s16minimumdividedbyoneIsminimum(){
 void s16MultiplicationOverflowDetected(){
     auto const operand { 0x7fff_ssi16 };
     ASSERT_EQUAL(std::numeric_limits<ssi16>::max(),operand * operand);
-//    ASSERT_THROWS(std::ignore = operand * operand, exception_t);
 }
 
 void s16AdditionOverflowDetected(){
@@ -68,7 +55,6 @@ void u16minimumdividedbyoneIsminimum(){
 void u16MultiplicationOverflowDetected(){
     auto const operand { 0x7fff_sui16 };
     ASSERT_EQUAL(std::numeric_limits<sui16>::max(),operand * operand);
-    //ASSERT_THROWS(std::ignore = operand * operand, exception_t);
 }
 
 void u16AdditionOverflowDetected(){

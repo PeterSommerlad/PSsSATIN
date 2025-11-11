@@ -1,9 +1,12 @@
 #include "psssatin.h"
-
 #include <cstddef>
+
 using namespace psssatin::literals;
+using namespace psssatin;
 
 static_assert(0x8000_sui16 == 32768_sui16);
+static_assert(0x7fff_sui32 < 100000_sui32);
+static_assert(std::is_same_v<std::uint64_t,ULT<sui64>>);
 
 namespace _testing {
 
@@ -14,7 +17,7 @@ from_int_compiles=false;
 
 template<typename FROM>
 constexpr bool
-from_int_compiles<FROM,std::void_t<decltype(psssatin::from_int(FROM{}))>> = true;
+from_int_compiles<FROM,std::void_t<decltype(from_int(FROM{}))>> = true;
 
 static_assert(from_int_compiles<unsigned char>);
 static_assert(from_int_compiles<signed char>);
@@ -45,7 +48,6 @@ static_assert(! from_int_compiles<wchar_t>);
 static_assert(! from_int_compiles<char16_t>);
 static_assert(! from_int_compiles<char32_t>);
 
-using namespace psssatin;
 
 static_assert(sizeof(long) == sizeof(long long)); // on my mac...
 static_assert(42_ssi64 == from_int(42L));
@@ -73,8 +75,8 @@ static_assert(std::is_same_v<unsigned,decltype(promote_keep_signedness(1_sui8)+1
 static_assert(std::is_same_v<unsigned,decltype(promote_keep_signedness(2_sui16)+1)>);
 static_assert(std::is_same_v<int,decltype(promote_keep_signedness(1_ssi8))>);
 static_assert(std::is_same_v<int,decltype(promote_keep_signedness(2_ssi16))>);
-static_assert(std::is_same_v<uint8_t,std::underlying_type_t<sui8>>);
-static_assert(std::is_same_v<uint16_t,std::underlying_type_t<sui16>>);
+static_assert(std::is_same_v<uint8_t,ULT<sui8>>);
+static_assert(std::is_same_v<uint16_t,ULT<sui16>>);
 
 
 //static_assert(promote_keep_signedness(0xffff_sui16 * 0xffff_sui16) == 0x1u); // wraps
@@ -446,7 +448,7 @@ static_assert(min_32 / vminus1_64 == 0x8000'0000_ssi64 );
 static_assert(min_32 / vminus1_32 == max_32 );
 static_assert(min_32 / vminus1_16 == max_32 );
 static_assert(min_32 / vminus1_8  == max_32 );
-static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(min_16)  );
+static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(to_underlying(min_16))  );
 static_assert(min_16 / vminus1_32 == 0x8000_ssi32 );
 static_assert(min_16 / vminus1_16 == max_16 );
 static_assert(min_16 / vminus1_8  == max_16 );
@@ -495,14 +497,13 @@ static_assert(100_ssi32 / 9_ssi64 == 11_ssi64);
 static_assert(-100_ssi32 / 9_ssi64 == -11_ssi64);
 static_assert(100_ssi32 / -9_ssi64 == -11_ssi64);
 
-static_assert(std::numeric_limits<ssi32>::min() / 1_ssi32 == std::numeric_limits<ssi32>::min()); // wraps
-static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limits<ssi32>::max()); // wraps
+static_assert(std::numeric_limits<ssi32>::min() / 1_ssi32 == std::numeric_limits<ssi32>::min()); //
+static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limits<ssi32>::max()); //
 
 
 namespace compile_checks {
-using namespace psssatin;
 template<auto ...value>
-using consume_value = void;
+using consume_value = void; // want value computation
 
 
 
@@ -636,7 +637,7 @@ static_assert(max_32 == min_32 / vminus1_8);
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_32 +) // overflow detect
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_16 +) // overflow detect
 //check_does_compile(not,  ssi32 , + min_32 / vminus1_8 +) // overflow detect
-static_assert(min_16 / vminus1_64 == -static_cast<ssi64>(min_16)  );
+static_assert(min_16 / vminus1_64 == -(0_ssi64 + min_16));
 static_assert(min_16 / vminus1_32 == 0x8000_ssi32 );
 static_assert(max_16 == min_16 / vminus1_16);
 static_assert(max_16 == min_16 / vminus1_8);
@@ -772,7 +773,6 @@ static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limit
 
 constexpr auto from_int(auto i){return i;} // cause non-matching code below to SFINAE
 
-
 check_does_compile(not ,  ssi8, + from_int(' ')  +) // invalid conversion
 check_does_compile(not ,  sui8, + from_int(u' ')  +) // invalid conversion
 check_does_compile(not ,  sui32, + from_int(U' ')  +) // invalid conversion
@@ -820,12 +820,12 @@ check_does_compile(not ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_
 // to signed from unsigned
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(42ull)  +) // ok conversion
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<int8_t>::min()+0)  +) // from unsigned too large
-static_assert(std::numeric_limits<ssi8>::max() == from_int_to<ssi8>(std::numeric_limits<int8_t>::min()+0u)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi8>::max() == from_int_to<ssi8>(static_cast<unsigned>(std::numeric_limits<int8_t>::min()))); //  signed to unsigned conversion
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<int8_t>::min()+0u)  +) // from unsigned too large
-static_assert(std::numeric_limits<ssi8>::max() == from_int_to<ssi8>(std::numeric_limits<int8_t>::min()-1u)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi8>::max() == from_int_to<ssi8>(static_cast<unsigned>(std::numeric_limits<int8_t>::min())-1u)); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<int8_t>::min()-1u)  +) //
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<int8_t>::max()+0u)  +) // ok conversion
-static_assert(std::numeric_limits<ssi8>::max() == from_int_to<ssi8>(std::numeric_limits<int8_t>::max()+1u)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi8>::max() == from_int_to<ssi8>(static_cast<unsigned>(std::numeric_limits<int8_t>::max())+1u)); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<int8_t>::max()+1u)  +) // overflow from unsigned conversion
 static_assert(std::numeric_limits<ssi8>::max() == from_int_to<ssi8>(std::numeric_limits<uint8_t>::max())); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<uint8_t>::max())  +) // too big
@@ -835,9 +835,9 @@ check_does_compile(    ,  ssi8, + from_int_to<ssi8>(std::numeric_limits<uint8_t>
 
 check_does_compile(    ,  ssi16, + from_int_to<ssi16>(42ull)  +) // ok conversion
 check_does_compile(    ,  ssi16, + from_int_to<ssi16>(std::numeric_limits<int16_t>::min()+0ll)  +) // from unsigned too large
-static_assert(std::numeric_limits<ssi16>::max() == from_int_to<ssi16>(std::numeric_limits<int16_t>::min()+0u)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi16>::max() == from_int_to<ssi16>(static_cast<unsigned>(std::numeric_limits<int16_t>::min()))); //  signed to unsigned conversion
 check_does_compile(    ,  ssi16, + from_int_to<ssi16>(std::numeric_limits<int16_t>::min()+0u)  +) // from unsigned too large
-static_assert(std::numeric_limits<ssi16>::max() == from_int_to<ssi16>(std::numeric_limits<int16_t>::min()-1u)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi16>::max() == from_int_to<ssi16>(static_cast<unsigned>(std::numeric_limits<int16_t>::min())-1u)); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi16, + from_int_to<ssi16>(std::numeric_limits<int16_t>::min()-1u)  +) // ok from unsigned too large
 check_does_compile(    ,  ssi16, + from_int_to<ssi16>(std::numeric_limits<int16_t>::max()+0ull)  +) // ok conversion
 static_assert(std::numeric_limits<ssi16>::max() == from_int_to<ssi16>(std::numeric_limits<int16_t>::max()+1ull)); // silent signed to unsigned conversion
@@ -850,11 +850,11 @@ check_does_compile(    ,  ssi16, + from_int_to<ssi16>(std::numeric_limits<uint16
 
 check_does_compile(    ,  ssi32, + from_int_to<ssi32>(42ull)  +) // ok conversion
 check_does_compile(    ,  ssi32, + from_int_to<ssi32>(std::numeric_limits<int32_t>::min()+0)  +) // from unsigned too large
-static_assert(std::numeric_limits<ssi32>::max() == from_int_to<ssi32>(std::numeric_limits<int32_t>::min()+0u)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi32>::max() == from_int_to<ssi32>(static_cast<uint32_t>(std::numeric_limits<int32_t>::min()))); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi32, + from_int_to<ssi32>(std::numeric_limits<int32_t>::min()+0u)  +) // from unsigned too large
 check_does_compile(    ,  ssi32, + from_int_to<ssi32>(std::numeric_limits<int32_t>::min()-1u)  +) // ok from unsigned too large
 check_does_compile(    ,  ssi32, + from_int_to<ssi32>(std::numeric_limits<int32_t>::max()+0u)  +) // ok conversion
-static_assert(std::numeric_limits<ssi32>::max() == from_int_to<ssi32>(std::numeric_limits<int32_t>::max()+1u)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi32>::max() == from_int_to<ssi32>(static_cast<uint32_t>(std::numeric_limits<int32_t>::max())+1u)); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi32, + from_int_to<ssi32>(std::numeric_limits<int32_t>::max()+1u)  +) // overflow from unsigned conversion
 static_assert(std::numeric_limits<ssi32>::max() == from_int_to<ssi32>(std::numeric_limits<uint32_t>::max())); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi32, + from_int_to<ssi32>(std::numeric_limits<uint32_t>::max())  +) // too big
@@ -864,11 +864,11 @@ check_does_compile(    ,  ssi32, + from_int_to<ssi32>(std::numeric_limits<uint32
 
 check_does_compile(    ,  ssi64, + from_int_to<ssi64>(42ull)  +) // ok conversion
 check_does_compile(    ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_t>::min()+0ll)  +) // from unsigned too large
-static_assert(std::numeric_limits<ssi64>::max() == from_int_to<ssi64>(std::numeric_limits<int64_t>::min()+0ull)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi64>::max() == from_int_to<ssi64>(static_cast<uint64_t>(std::numeric_limits<int64_t>::min()))); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_t>::min()+0ull)  +) // from unsigned too large
 check_does_compile(    ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_t>::min()-1ull)  +) // ok from unsigned too large
 check_does_compile(    ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_t>::max()+0ull)  +) // ok conversion
-static_assert(std::numeric_limits<ssi64>::max() == from_int_to<ssi64>(std::numeric_limits<int64_t>::max()+1ull)); // silent signed to unsigned conversion
+static_assert(std::numeric_limits<ssi64>::max() == from_int_to<ssi64>(static_cast<uint64_t>(std::numeric_limits<int64_t>::max())+1ull)); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<int64_t>::max()+1ull)  +) // overflow from unsigned conversion
 static_assert(std::numeric_limits<ssi64>::max() == from_int_to<ssi64>(std::numeric_limits<uint64_t>::max())); // silent signed to unsigned conversion
 check_does_compile(    ,  ssi64, + from_int_to<ssi64>(std::numeric_limits<uint64_t>::max())  +) // too big
@@ -919,9 +919,9 @@ check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64
 check_does_compile(    ,  sui8, + from_int_to<sui8>(42ll)  +) // ok conversion
 static_assert(std::numeric_limits<sui8>::min() == from_int_to<sui8>(std::numeric_limits<int8_t>::min()+0)); // clamp
 check_does_compile(    ,  sui8, + from_int_to<sui8>(std::numeric_limits<int8_t>::min()+0)  +) // from unsigned too large
-static_assert(std::numeric_limits<sui8>::max() == from_int_to<sui8>(std::numeric_limits<int8_t>::min()+0u)); // clamp
+static_assert(std::numeric_limits<sui8>::max() == from_int_to<sui8>(static_cast<unsigned>(std::numeric_limits<int8_t>::min()))); // clamp
 check_does_compile(    ,  sui8, + from_int_to<sui8>(std::numeric_limits<int8_t>::min()+0u)  +) // from unsigned too large
-static_assert(std::numeric_limits<sui8>::max() == from_int_to<sui8>(std::numeric_limits<int8_t>::min()-1u)); // clamp
+static_assert(std::numeric_limits<sui8>::max() == from_int_to<sui8>(static_cast<unsigned>(std::numeric_limits<int8_t>::min())-1u)); // clamp
 check_does_compile(    ,  sui8, + from_int_to<sui8>(std::numeric_limits<int8_t>::min()-1u)  +) //
 check_does_compile(    ,  sui8, + from_int_to<sui8>(std::numeric_limits<int8_t>::max()+0u)  +) // ok conversion
 check_does_compile(    ,  sui8, + from_int_to<sui8>(std::numeric_limits<int8_t>::max()+1u)  +) // overflow from unsigned conversion
@@ -935,9 +935,9 @@ check_does_compile(    ,  sui8, + from_int_to<sui8>(std::numeric_limits<uint8_t>
 check_does_compile(    ,  sui16, + from_int_to<sui16>(42ll)  +) // ok conversion
 static_assert(std::numeric_limits<sui16>::min() == from_int_to<sui16>(std::numeric_limits<int16_t>::min()+0ll)); // clamp
 check_does_compile(    ,  sui16, + from_int_to<sui16>(std::numeric_limits<int16_t>::min()+0ll)  +) // from unsigned too large
-static_assert(std::numeric_limits<sui16>::max() == from_int_to<sui16>(std::numeric_limits<int16_t>::min()+0u)); // clamp
+static_assert(std::numeric_limits<sui16>::max() == from_int_to<sui16>(static_cast<unsigned>(std::numeric_limits<int16_t>::min()))); // clamp
 check_does_compile(    ,  sui16, + from_int_to<sui16>(std::numeric_limits<int16_t>::min()+0u)  +) // from unsigned too large
-static_assert(std::numeric_limits<sui16>::max() == from_int_to<sui16>(std::numeric_limits<int16_t>::min()-1u)); // clamp
+static_assert(std::numeric_limits<sui16>::max() == from_int_to<sui16>(static_cast<unsigned>(std::numeric_limits<int16_t>::min())-1u)); // clamp
 check_does_compile(    ,  sui16, + from_int_to<sui16>(std::numeric_limits<int16_t>::min()-1u)  +) // ok from unsigned too large
 check_does_compile(    ,  sui16, + from_int_to<sui16>(std::numeric_limits<int16_t>::max()+0ull)  +) // ok conversion
 check_does_compile(    ,  sui16, + from_int_to<sui16>(std::numeric_limits<int16_t>::max()+1ull)  +) // overflow from unsigned conversion
@@ -972,6 +972,22 @@ check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<int64_
 check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64_t>::max())  +) // OK
 check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64_t>::min()-1ll)  +) // unsigned overflow always OK
 check_does_compile(    ,  sui64, + from_int_to<sui64>(std::numeric_limits<uint64_t>::max()-std::numeric_limits<int64_t>::min())  +) // OK
+
+
+static_assert(vminus1_8 == from_int_to<ssi8>(-1));
+static_assert(vminus1_16 == from_int_to<ssi16>(-1));
+static_assert(vminus1_32 == from_int_to<ssi32>(-1));
+static_assert(vminus1_64 == from_int_to<ssi64>(-1));
+
+static_assert(std::numeric_limits<ssi8>::min() == from_int_to<ssi8>(-0x7fff'ffff'ffff'ffffLL-1));
+static_assert(std::numeric_limits<ssi16>::min() == from_int_to<ssi16>(-0x7fff'ffff'ffff'ffffLL-1));
+static_assert(std::numeric_limits<ssi32>::min() == from_int_to<ssi32>(-0x7fff'ffff'ffff'ffffLL-1));
+static_assert(std::numeric_limits<ssi64>::min() == from_int_to<ssi64>(-0x7fff'ffff'ffff'ffffLL-1));
+
+static_assert(0_sui8 == from_int_to<sui8>(-1));
+static_assert(0_sui16 == from_int_to<sui16>(-1));
+static_assert(0_sui32 == from_int_to<sui32>(-1));
+static_assert(0_sui64 == from_int_to<sui64>(-1));
 
 // check negation detection
 check_does_compile(    ,  ssi8, +  (- max_8)  +) // ok conversion
@@ -1044,7 +1060,6 @@ check_does_compile(    ,  sui16, +  1_sui16 - 1_sui8  +) // same signedness
 check_does_compile(    ,  sui32, +  1_sui32 - 1_sui8  +) // same signedness
 check_does_compile(    ,  sui64, +  1_sui64 - 1_sui8  +) // same signedness
 
-
 }
 #undef check_does_compile
 #undef concat_line_impl
@@ -1077,8 +1092,8 @@ template<typename T>
 constexpr bool
 is_integer = is_unsigned<T>||is_signed<T>;
 
-static_assert(is_integer<std::underlying_type_t<sui16>>);
+static_assert(is_integer<ULT<sui16>>);
 static_assert(!is_integer<sui16>);
-static_assert(is_integer<std::underlying_type_t<ssi16>>);
+static_assert(is_integer<ULT<ssi16>>);
 static_assert(!is_integer<ssi16>);
 }

@@ -5,7 +5,7 @@
 
 #ifndef __cpp_lib_saturation_arithmetic
 
-using namespace psssatin::non_builtin;
+using namespace psssatin::detail_::non_builtin;
 
 template<typename INT>
 struct testSignedAddOverflow{

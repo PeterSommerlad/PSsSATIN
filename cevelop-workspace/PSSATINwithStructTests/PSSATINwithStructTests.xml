@@ -77,8 +77,6 @@
 	</testsuite>
 	<testsuite name="CodeGenBenchmark" tests="22">
 		<testcase classname="CodeGenBenchmark" name="codegenAdditionTest"/>
-		<testcase classname="CodeGenBenchmark" name="testUBSanWithSignedOverflow"/>
-		<testcase classname="CodeGenBenchmark" name="testUnSignedOverflowThrows"/>
 		<testcase classname="CodeGenBenchmark" name="codegenMultiplicationTest"/>
 		<testcase classname="CodeGenBenchmark" name="codegenSumThirdsTest"/>
 		<testcase classname="CodeGenBenchmark" name="codegenSubtractionTest"/>
@@ -98,6 +96,8 @@
 		<testcase classname="CodeGenBenchmark" name="int64::codegenMultiplicationTest"/>
 		<testcase classname="CodeGenBenchmark" name="int64::codegenSumThirdsTest"/>
 		<testcase classname="CodeGenBenchmark" name="int64::codegenSubtractionTest"/>
+		<testcase classname="CodeGenBenchmark" name="testUBSanWithSignedOverflow"/>
+		<testcase classname="CodeGenBenchmark" name="testUnSignedOverflowThrows"/>
 	</testsuite>
 	<testsuite name="TestForZeroReturnAssertWithNDEBUG" tests="6">
 		<testcase classname="TestForZeroReturnAssertWithNDEBUG" name="thisIsATestForZeroReturnAssertWithNDEBUGTest"/>
