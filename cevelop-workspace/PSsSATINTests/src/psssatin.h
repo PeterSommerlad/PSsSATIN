@@ -375,17 +375,17 @@ constexpr bool mul_overflow(T l, T r, T* result) noexcept {
 template<sized_integer T>
 [[nodiscard]]
 constexpr bool add_overflow(T l, T r, T* result) noexcept {
-    return non_builtin::non_builtin_add_overflow(l,r,result);
+    return detail_::non_builtin::non_builtin_add_overflow(l,r,result);
 }
 template<sized_integer T>
 [[nodiscard]]
 constexpr bool sub_overflow(T l, T r, T* result) noexcept {
-    return non_builtin::non_builtin_sub_overflow(l,r,result);
+    return detail_::non_builtin::non_builtin_sub_overflow(l,r,result);
 }
 template<sized_integer T>
 [[nodiscard]]
 constexpr bool mul_overflow(T l, T r, T* result) noexcept {
-    return non_builtin::non_builtin_mul_overflow(l,r,result);
+    return detail_::non_builtin::non_builtin_mul_overflow(l,r,result);
 }
 
 #endif
