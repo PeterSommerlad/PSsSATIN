@@ -153,81 +153,6 @@ using detail_::ULT;
 template<typename E>
 concept a_saturatingint = detail_::is_saturatingint_v<E>;
 
-} // psssint
-
-
-// provide std::numeric_limits
-namespace std {
-
-
-
-template<psssatin::a_saturatingint type>
-  struct numeric_limits<type>
-  {
-    using ult = psssatin::detail_::ULT<type>;
-    static constexpr bool is_specialized = true;
-
-    static constexpr type
-    min() noexcept { return type{numeric_limits<ult>::min()}; }
-
-    static constexpr type
-    max() noexcept { return type{numeric_limits<ult>::max()}; }
-
-    static constexpr type
-    lowest() noexcept { return type{numeric_limits<ult>::lowest()}; }
-
-    static constexpr int digits = numeric_limits<ult>::digits;
-    static constexpr int digits10 = numeric_limits<ult>::digits10;
-    static constexpr int max_digits10 = numeric_limits<ult>::max_digits10;
-    static constexpr bool is_signed = numeric_limits<ult>::is_signed;
-    static constexpr bool is_integer = numeric_limits<ult>::is_integer;
-    static constexpr bool is_exact = numeric_limits<ult>::is_exact;
-    static constexpr int radix = numeric_limits<ult>::radix;
-
-    static constexpr type
-    epsilon() noexcept {  return type{numeric_limits<ult>::epsilon()}; }
-
-    static constexpr type
-    round_error() noexcept {  return type{numeric_limits<ult>::round_error()}; }
-
-    static constexpr int min_exponent = numeric_limits<ult>::min_exponent;
-    static constexpr int min_exponent10 = numeric_limits<ult>::min_exponent10;
-    static constexpr int max_exponent = numeric_limits<ult>::max_exponent;
-    static constexpr int max_exponent10 = numeric_limits<ult>::max_exponent10;
-
-    static constexpr bool has_infinity = numeric_limits<ult>::has_infinity;
-    static constexpr bool has_quiet_NaN = numeric_limits<ult>::has_quiet_NaN;
-    static constexpr bool has_signaling_NaN = numeric_limits<ult>::has_signaling_NaN;
-    static constexpr float_denorm_style has_denorm
-     = numeric_limits<ult>::has_denorm;
-    static constexpr bool has_denorm_loss = numeric_limits<ult>::has_denorm_loss;
-
-    static constexpr type
-    infinity() noexcept { return type{numeric_limits<ult>::infinity()}; }
-
-    static constexpr type
-    quiet_NaN() noexcept { return type{numeric_limits<ult>::quiet_NaN()}; }
-
-    static constexpr type
-    signaling_NaN() noexcept
-    { return type{numeric_limits<ult>::signaling_NaN()}; }
-
-    static constexpr type
-    denorm_min() noexcept
-    { return type{numeric_limits<ult>::denorm_min()}; }
-
-    static constexpr bool is_iec559 =  numeric_limits<ult>::is_iec559;
-    static constexpr bool is_bounded =  numeric_limits<ult>::is_bounded;
-    static constexpr bool is_modulo =  false; // saturation arithmetic never modulo
-
-    static constexpr bool traps = false; // saturation/safe arithmetic never traps
-    static constexpr bool tinyness_before =  numeric_limits<ult>::tinyness_before;
-    static constexpr float_round_style round_style =  numeric_limits<ult>::round_style;
-  };
-
-}
-
-namespace psssatin{
 
 namespace detail_{
 
@@ -863,5 +788,74 @@ std::ostream& operator<<(std::ostream &out, a_saturatingint auto value){
 }
 
 }
+// provide std::numeric_limits
+namespace std {
 
+
+
+template<psssatin::a_saturatingint type>
+  struct numeric_limits<type>
+  {
+    using ult = psssatin::detail_::ULT<type>;
+    static constexpr bool is_specialized = true;
+
+    static constexpr type
+    min() noexcept { return type{numeric_limits<ult>::min()}; }
+
+    static constexpr type
+    max() noexcept { return type{numeric_limits<ult>::max()}; }
+
+    static constexpr type
+    lowest() noexcept { return type{numeric_limits<ult>::lowest()}; }
+
+    static constexpr int digits = numeric_limits<ult>::digits;
+    static constexpr int digits10 = numeric_limits<ult>::digits10;
+    static constexpr int max_digits10 = numeric_limits<ult>::max_digits10;
+    static constexpr bool is_signed = numeric_limits<ult>::is_signed;
+    static constexpr bool is_integer = numeric_limits<ult>::is_integer;
+    static constexpr bool is_exact = numeric_limits<ult>::is_exact;
+    static constexpr int radix = numeric_limits<ult>::radix;
+
+    static constexpr type
+    epsilon() noexcept {  return type{numeric_limits<ult>::epsilon()}; }
+
+    static constexpr type
+    round_error() noexcept {  return type{numeric_limits<ult>::round_error()}; }
+
+    static constexpr int min_exponent = numeric_limits<ult>::min_exponent;
+    static constexpr int min_exponent10 = numeric_limits<ult>::min_exponent10;
+    static constexpr int max_exponent = numeric_limits<ult>::max_exponent;
+    static constexpr int max_exponent10 = numeric_limits<ult>::max_exponent10;
+
+    static constexpr bool has_infinity = numeric_limits<ult>::has_infinity;
+    static constexpr bool has_quiet_NaN = numeric_limits<ult>::has_quiet_NaN;
+    static constexpr bool has_signaling_NaN = numeric_limits<ult>::has_signaling_NaN;
+    static constexpr float_denorm_style has_denorm
+     = numeric_limits<ult>::has_denorm;
+    static constexpr bool has_denorm_loss = numeric_limits<ult>::has_denorm_loss;
+
+    static constexpr type
+    infinity() noexcept { return type{numeric_limits<ult>::infinity()}; }
+
+    static constexpr type
+    quiet_NaN() noexcept { return type{numeric_limits<ult>::quiet_NaN()}; }
+
+    static constexpr type
+    signaling_NaN() noexcept
+    { return type{numeric_limits<ult>::signaling_NaN()}; }
+
+    static constexpr type
+    denorm_min() noexcept
+    { return type{numeric_limits<ult>::denorm_min()}; }
+
+    static constexpr bool is_iec559 =  numeric_limits<ult>::is_iec559;
+    static constexpr bool is_bounded =  numeric_limits<ult>::is_bounded;
+    static constexpr bool is_modulo =  false; // saturation arithmetic never modulo
+
+    static constexpr bool traps = false; // saturation/safe arithmetic never traps
+    static constexpr bool tinyness_before =  numeric_limits<ult>::tinyness_before;
+    static constexpr float_round_style round_style =  numeric_limits<ult>::round_style;
+  };
+
+}
 #endif /* SRC_PSSSATIN_ */
