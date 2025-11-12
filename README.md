@@ -23,3 +23,4 @@ No operation will generate a run-time error or have undefined behavior, but inst
 
 Shifting by too many bits will give corresponding zero value.
 
+Play with it on [Compiler Explorer class](https://godbolt.org/z/Mrsan3188)
