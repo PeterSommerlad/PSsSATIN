@@ -1,5 +1,5 @@
 <testsuites>
-	<testsuite name="AllTests" tests="74">
+	<testsuite name="AllTests" tests="85">
 		<testcase classname="AllTests" name="ui16intExists"/>
 		<testcase classname="AllTests" name="ui16NotEqualAutomaticInCpp20"/>
 		<testcase classname="AllTests" name="ui16canbeadded"/>
@@ -74,38 +74,21 @@
 		<testcase classname="AllTests" name="ui64postincrement"/>
 		<testcase classname="AllTests" name="ui64predecrement"/>
 		<testcase classname="AllTests" name="ui64postdecrement"/>
+		<testcase classname="AllTests" name="DemonstrateSaturationArithmetic"/>
+		<testcase classname="AllTests" name="cppnowtalk::testUBforint"/>
+		<testcase classname="AllTests" name="cppnowtalk::testNoUBforunsigned"/>
+		<testcase classname="AllTests" name="skalarmultbyUnsignedTest"/>
+		<testcase classname="AllTests" name="skalarmultUnsignedTest"/>
+		<testcase classname="AllTests" name="skalarmultbySignedTest"/>
+		<testcase classname="AllTests" name="skalarmultSignedTest"/>
+		<testcase classname="AllTests" name="skalardivbyUnsignedTest"/>
+		<testcase classname="AllTests" name="skalardivUnsignedTest"/>
+		<testcase classname="AllTests" name="skalardivbySignedTest"/>
+		<testcase classname="AllTests" name="skalardivSignedTest"/>
 	</testsuite>
-	<testsuite name="CodeGenBenchmark" tests="22">
-		<testcase classname="CodeGenBenchmark" name="codegenAdditionTest"/>
-		<testcase classname="CodeGenBenchmark" name="codegenMultiplicationTest"/>
-		<testcase classname="CodeGenBenchmark" name="codegenSumThirdsTest"/>
-		<testcase classname="CodeGenBenchmark" name="codegenSubtractionTest"/>
-		<testcase classname="CodeGenBenchmark" name="int32::codegenAdditionTest"/>
-		<testcase classname="CodeGenBenchmark" name="int32::codegenMultiplicationTest"/>
-		<testcase classname="CodeGenBenchmark" name="int32::codegenSumThirdsTest"/>
-		<testcase classname="CodeGenBenchmark" name="int32::codegenSubtractionTest"/>
-		<testcase classname="CodeGenBenchmark" name="uint32::codegenAdditionTest"/>
-		<testcase classname="CodeGenBenchmark" name="uint32::codegenMultiplicationTest"/>
-		<testcase classname="CodeGenBenchmark" name="uint32::codegenSumThirdsTest"/>
-		<testcase classname="CodeGenBenchmark" name="uint32::codegenSubtractionTest"/>
-		<testcase classname="CodeGenBenchmark" name="int16::codegenAdditionTest"/>
-		<testcase classname="CodeGenBenchmark" name="int16::codegenMultiplicationTest"/>
-		<testcase classname="CodeGenBenchmark" name="int16::codegenSumThirdsTest"/>
-		<testcase classname="CodeGenBenchmark" name="int16::codegenSubtractionTest"/>
-		<testcase classname="CodeGenBenchmark" name="int64::codegenAdditionTest"/>
-		<testcase classname="CodeGenBenchmark" name="int64::codegenMultiplicationTest"/>
-		<testcase classname="CodeGenBenchmark" name="int64::codegenSumThirdsTest"/>
-		<testcase classname="CodeGenBenchmark" name="int64::codegenSubtractionTest"/>
+	<testsuite name="CodeGenBenchmark" tests="2">
 		<testcase classname="CodeGenBenchmark" name="testUBSanWithSignedOverflow"/>
 		<testcase classname="CodeGenBenchmark" name="testUnSignedOverflowThrows"/>
-	</testsuite>
-	<testsuite name="TestForZeroReturnAssertWithNDEBUG" tests="6">
-		<testcase classname="TestForZeroReturnAssertWithNDEBUG" name="thisIsATestForZeroReturnAssertWithNDEBUGTest"/>
-		<testcase classname="TestForZeroReturnAssertWithNDEBUG" name="ModuloTestForZeroReturnAssertWithNDEBUGTest"/>
-		<testcase classname="TestForZeroReturnAssertWithNDEBUG" name="ShiftLeftTestForZeroReturnAssertWithNDEBUGTest"/>
-		<testcase classname="TestForZeroReturnAssertWithNDEBUG" name="ShiftRightTestForZeroReturnAssertWithNDEBUGTest"/>
-		<testcase classname="TestForZeroReturnAssertWithNDEBUG" name="cppnowtalk::testUBforint"/>
-		<testcase classname="TestForZeroReturnAssertWithNDEBUG" name="cppnowtalk::testNoUBforunsigned"/>
 	</testsuite>
 	<testsuite name="OverflowCheckedTests" tests="71">
 		<testcase classname="OverflowCheckedTests" name="si16minnegateOverflows"/>

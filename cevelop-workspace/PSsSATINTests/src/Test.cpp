@@ -18,6 +18,51 @@ void signedIntegerBoundaryTestResultRecovery(){
     ASSERT_EQUAL(0x8000'0000_ssi64, std::numeric_limits<ssi32>::max() + 1_ssi64  );
 }
 
+void skalarmultbyUnsignedTest(){
+    auto val = 10_sui16;
+    val *= 10u;
+    ASSERT_EQUAL(100_sui16, val);
+}
+
+void skalarmultUnsignedTest(){
+    auto val = 10_sui16;
+    ASSERT_EQUAL(100_sui16, val * 10);
+    ASSERT_EQUAL(100_sui16, 10 * val);
+}
+void skalardivbyUnsignedTest(){
+    auto val = 100_sui16;
+    val /= 10u;
+    ASSERT_EQUAL(10_sui16, val);
+}
+
+void skalardivUnsignedTest(){
+    auto val = 100_sui16;
+    ASSERT_EQUAL(10_sui16, val / 10);
+}
+
+
+void skalarmultbySignedTest(){
+    auto val = 10_ssi16;
+    val *= 10u;
+    ASSERT_EQUAL(100_ssi16, val);
+}
+
+void skalarmultSignedTest(){
+    auto val = 10_ssi16;
+    ASSERT_EQUAL(100_ssi16, val * 10);
+    ASSERT_EQUAL(100_ssi16,  10 * val);
+}
+
+void skalardivbySignedTest(){
+    auto val = 100_ssi16;
+    val /= 10;
+    ASSERT_EQUAL(10_ssi16, val);
+}
+
+void skalardivSignedTest(){
+    auto val = 100_ssi16;
+    ASSERT_EQUAL(10_ssi16, val / 10);
+}
 
 void si8preincrement(){
     auto one = 1_ssi8;
@@ -518,7 +563,15 @@ bool runAllTests(int argc, char const *argv[]) {
     s.push_back(CUTE(DemonstrateSaturationArithmetic));
     s.push_back(CUTE(cppnowtalk::testUBforint));
     s.push_back(CUTE(cppnowtalk::testNoUBforunsigned));
-	cute::xml_file_opener xmlfile(argc, argv);
+    s.push_back(CUTE(skalarmultbyUnsignedTest));
+    s.push_back(CUTE(skalarmultUnsignedTest));
+    s.push_back(CUTE(skalarmultbySignedTest));
+    s.push_back(CUTE(skalarmultSignedTest));
+    s.push_back(CUTE(skalardivbyUnsignedTest));
+    s.push_back(CUTE(skalardivUnsignedTest));
+    s.push_back(CUTE(skalardivbySignedTest));
+    s.push_back(CUTE(skalardivSignedTest));
+    cute::xml_file_opener xmlfile(argc, argv);
     cute::xml_listener<cute::ide_listener<>> lis(xmlfile.out);
     auto runner = cute::makeRunner(lis, argc, argv);
     bool success = runner(s, "AllTests");

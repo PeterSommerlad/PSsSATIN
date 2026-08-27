@@ -37,10 +37,14 @@ is_compatible_integer_v = std::is_same_v<plain<TESTED>,INT> ||
    && std::numeric_limits<plain<TESTED>>::max() == std::numeric_limits<INT>::max()
    );
 
+template<typename TESTED,typename=void>
+constexpr bool
+is_known_integer_v =false;
 // only support the following sizes:
 template<typename TESTED>
 constexpr bool
-is_known_integer_v =    is_compatible_integer_v<std::uint8_t,  TESTED>
+is_known_integer_v<TESTED,std::enable_if_t<std::is_integral_v<TESTED>>> =
+                        is_compatible_integer_v<std::uint8_t,  TESTED>
                      || is_compatible_integer_v<std::uint16_t, TESTED>
                      || is_compatible_integer_v<std::uint32_t, TESTED>
                      || is_compatible_integer_v<std::uint64_t, TESTED>
@@ -474,6 +478,18 @@ struct [[nodiscard]] Satin{
     #endif
         return static_cast<result_t>(result);
     }
+    template<sized_integer RIGHT>
+    friend constexpr auto
+    operator*(Satin l, RIGHT r)
+    {
+        return l * from_int_to<Satin>(r);
+    }
+    template<sized_integer LEFT>
+    friend constexpr auto
+    operator*(LEFT l, Satin r)
+    {
+        return from_int_to<Satin>(l) * r;
+    }
     template<a_saturatingint RIGHT>
     constexpr auto&
     operator*=(RIGHT r) & noexcept
@@ -482,6 +498,12 @@ struct [[nodiscard]] Satin{
         static_assert(sizeof(Satin) >= sizeof(RIGHT),"multiplying too large integer type");
         *this = static_cast<Satin>(*this*r);
         return *this;
+    }
+    template<sized_integer RIGHT>
+    constexpr auto&
+    operator*=(RIGHT r) &
+    {
+        return *this *= from_int_to<Satin>(r);
     }
     template<a_saturatingint RIGHT>
     friend constexpr auto
@@ -509,7 +531,12 @@ struct [[nodiscard]] Satin{
             if (0 == denominator) return std::numeric_limits<result_t>::max();
         }
         return static_cast<result_t>(static_cast<ult>(numerator/denominator));
-
+    }
+    template<sized_integer RIGHT>
+    friend constexpr auto
+    operator/(Satin const l, RIGHT const r)
+    {
+        return l / from_int_to<Satin>(r);
     }
     template<a_saturatingint RIGHT>
     constexpr auto&
@@ -519,6 +546,12 @@ struct [[nodiscard]] Satin{
         static_assert(sizeof(Satin) >= sizeof(RIGHT),"dividing by too large integer type");
         *this = static_cast<Satin>(*this/r);
         return *this;
+    }
+    template<sized_integer RIGHT>
+    constexpr auto&
+    operator/=(RIGHT r) &
+    {
+        return *this /= from_int_to<Satin>(r);
     }
     template<a_saturatingint RIGHT>
     friend constexpr auto

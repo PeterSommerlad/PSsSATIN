@@ -180,9 +180,14 @@ is_compatible_integer_v = std::is_same_v<plain<TESTED>,INT> ||
    && std::numeric_limits<plain<TESTED>>::max() == std::numeric_limits<INT>::max()
    );
 
+template<typename TESTED,typename=void>
+constexpr bool
+is_known_integer_v =false;
+
 template<typename TESTED>
 constexpr bool
-is_known_integer_v =    is_compatible_integer_v<std::uint8_t,  TESTED>
+is_known_integer_v<TESTED,std::enable_if_t<std::is_integral_v<TESTED>>> =
+                        is_compatible_integer_v<std::uint8_t,  TESTED>
                      || is_compatible_integer_v<std::uint16_t, TESTED>
                      || is_compatible_integer_v<std::uint32_t, TESTED>
                      || is_compatible_integer_v<std::uint64_t, TESTED>
@@ -606,6 +611,19 @@ requires same_signedness<LEFT,RIGHT>
 #endif
     return static_cast<result_t>(result);
 }
+template<a_saturatingint LEFT, sized_integer RIGHT>
+constexpr auto
+operator*(LEFT l, RIGHT r)
+{
+    return l * from_int_to<LEFT>(r);
+}
+template<sized_integer LEFT, a_saturatingint RIGHT>
+constexpr auto
+operator*(LEFT l, RIGHT r)
+{
+    return from_int_to<RIGHT>(l) * r;
+}
+
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
 operator*=(LEFT &l, RIGHT r) noexcept
@@ -614,6 +632,12 @@ requires same_signedness<LEFT,RIGHT>
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"multiplying too large integer type");
     l = static_cast<LEFT>(l*r);
     return l;
+}
+template<a_saturatingint LEFT, sized_integer RIGHT>
+constexpr auto&
+operator*=(LEFT &l, RIGHT r)
+{
+    return l *= from_int_to<LEFT>(r);
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto
@@ -640,7 +664,12 @@ requires same_signedness<LEFT,RIGHT>
         if (0 == denominator) return std::numeric_limits<result_t>::max();
     }
     return static_cast<result_t>(numerator/denominator);
-
+}
+template<a_saturatingint LEFT, sized_integer RIGHT>
+constexpr auto
+operator/(LEFT const l, RIGHT const r)
+{
+    return l / from_int_to<LEFT>(r);
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto&
@@ -650,6 +679,12 @@ requires same_signedness<LEFT,RIGHT>
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"dividing by too large integer type");
     l = static_cast<LEFT>(l/r);
     return l;
+}
+template<a_saturatingint LEFT, sized_integer RIGHT>
+constexpr auto&
+operator/=(LEFT &l, RIGHT r)
+{
+    return l /= from_int_to<LEFT>(r);
 }
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
 constexpr auto
