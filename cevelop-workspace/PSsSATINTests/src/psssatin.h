@@ -10,6 +10,14 @@
 #include <numeric> // C++26 saturation arithmetic
 #endif
 
+#if __cplusplus == 201703L
+#define CONSTEVAL constexpr
+#elif __cplusplus >= 202002L
+#define CONSTEVAL consteval
+#else
+#error "requires at least C++17, best C++20"
+#endif
+
 namespace psssatin { // Peter Sommerlad's simple SATuration Integral Numbers PSsSATIN
 
 // unsigned 
@@ -19,7 +27,7 @@ enum class [[nodiscard]]sui32: std::uint32_t{ psssatin_tag_to_prevent_mixing_oth
 enum class [[nodiscard]]sui64: std::uint64_t{ psssatin_tag_to_prevent_mixing_other_enums };
 
 inline namespace literals {
-consteval
+CONSTEVAL
 sui8 operator""_sui8(unsigned long long val) {
     if (val <= std::numeric_limits<std::underlying_type_t<sui8>>::max()) {
         return sui8(val);
@@ -29,7 +37,7 @@ sui8 operator""_sui8(unsigned long long val) {
 }
 
 
-consteval
+CONSTEVAL
 sui16 operator""_sui16(unsigned long long val) {
     if (val <= std::numeric_limits<std::underlying_type_t<sui16>>::max()) {
         return sui16(val);
@@ -39,7 +47,7 @@ sui16 operator""_sui16(unsigned long long val) {
 }
 
 
-consteval
+CONSTEVAL
 sui32 operator""_sui32(unsigned long long val) {
     if (val <= std::numeric_limits<std::underlying_type_t<sui32>>::max()) {
         return sui32(val);
@@ -49,7 +57,7 @@ sui32 operator""_sui32(unsigned long long val) {
 }
 
 
-consteval
+CONSTEVAL
 sui64 operator""_sui64(unsigned long long val) {
     if constexpr (sizeof(sui64) < sizeof(val)){
         if (val > 0xffff'ffff'fffffffful) {
@@ -67,7 +75,7 @@ enum class [[nodiscard]]ssi32: std::int32_t{ psssatin_tag_to_prevent_mixing_othe
 enum class [[nodiscard]]ssi64: std::int64_t{ psssatin_tag_to_prevent_mixing_other_enums };
 
 inline namespace literals {
-consteval
+CONSTEVAL
 ssi8 operator""_ssi8(unsigned long long val) {
     if (val <= std::numeric_limits<std::underlying_type_t<ssi8>>::max()) {
         return ssi8(val);
@@ -77,7 +85,7 @@ ssi8 operator""_ssi8(unsigned long long val) {
 }
 
 
-consteval
+CONSTEVAL
 ssi16 operator""_ssi16(unsigned long long val) {
     if (val <= std::numeric_limits<std::underlying_type_t<ssi16>>::max()) {
         return ssi16(val);
@@ -87,7 +95,7 @@ ssi16 operator""_ssi16(unsigned long long val) {
 }
 
 
-consteval
+CONSTEVAL
 ssi32 operator""_ssi32(unsigned long long val) {
     if (val <= std::numeric_limits<std::underlying_type_t<ssi32>>::max()) {
         return ssi32(val);
@@ -97,7 +105,7 @@ ssi32 operator""_ssi32(unsigned long long val) {
 }
 
 
-consteval
+CONSTEVAL
 ssi64 operator""_ssi64(unsigned long long val) {
     if (val <= std::numeric_limits<std::underlying_type_t<ssi64>>::max()) {
         return ssi64(val);
@@ -108,16 +116,16 @@ ssi64 operator""_ssi64(unsigned long long val) {
 }
 
 
-
+#undef CONSTEVAL
 
 
 namespace detail_ {
+#if __cplusplus >= 202002L
 template<typename T>
 using plain = std::remove_cvref_t<T>;
 
 template<typename T>
 concept an_enum = std::is_enum_v<plain<T>>;
-
 // from C++23
 template<an_enum T>
 constexpr bool
@@ -126,9 +134,21 @@ is_scoped_enum_v = not std::is_convertible_v<T, std::underlying_type_t<T>>;
 template<typename T>
 concept a_scoped_enum = is_scoped_enum_v<T>;
 
+#else
+template<typename T>
+using plain = std::remove_cv_t<std::remove_reference_t<T>>;
+
+template<typename T>
+constexpr bool an_enum = std::is_enum_v<plain<T>>;
+// from C++23
+template<typename T, typename = std::enable_if_t<an_enum<T>,void>>
+constexpr bool
+is_scoped_enum_v = !std::is_convertible_v<T, std::underlying_type_t<T>>;
+
+#endif
 
 // detection concept
-
+#if __cplusplus >= 202002L
 template<typename T>
 constexpr bool
 is_saturatingint_v = false;
@@ -136,6 +156,16 @@ is_saturatingint_v = false;
 template<a_scoped_enum E>
 constexpr bool
 is_saturatingint_v<E> = requires { E{} == E::psssatin_tag_to_prevent_mixing_other_enums; } ;
+#else
+template<typename T, typename=void>
+constexpr bool
+is_saturatingint_v = false;
+template<typename E>
+constexpr bool
+is_saturatingint_v<E,std::void_t<decltype( E{} == E::psssatin_tag_to_prevent_mixing_other_enums )>> = is_scoped_enum_v<E> ;
+
+#endif
+
 
 template<typename E>
 using ULT=std::conditional_t<std::is_enum_v<plain<E>>,std::underlying_type_t<plain<E>>,plain<E>>;
@@ -150,15 +180,20 @@ using promoted_t = // will promote keeping signedness
 }
 
 using detail_::ULT;
+#ifdef __cpp_concepts
 template<typename E>
 concept a_saturatingint = detail_::is_saturatingint_v<E>;
-
+#endif
 
 namespace detail_{
-
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT,
+typename=std::enable_if_t<is_saturatingint_v<LEFT> &&is_saturatingint_v<RIGHT>>>
+#endif
 constexpr bool
-same_signedness_v = std::numeric_limits<LEFT>::is_signed == std::numeric_limits<RIGHT>::is_signed;
+same_signedness_v = is_saturatingint_v<LEFT> && is_saturatingint_v<RIGHT> && std::numeric_limits<ULT<LEFT>>::is_signed == std::numeric_limits<ULT<RIGHT>>::is_signed;
 
 template<typename CHAR>
 constexpr bool
@@ -198,10 +233,16 @@ is_known_integer_v<TESTED,std::enable_if_t<std::is_integral_v<TESTED>>> =
 
 }
 
+#ifdef __cpp_concepts
 template<typename LEFT, typename RIGHT>
 concept same_signedness = detail_::same_signedness_v<LEFT,RIGHT>;
+#endif
 
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E>>>
+#endif
 [[nodiscard]]
 constexpr auto
 promote_keep_signedness(E val) noexcept
@@ -210,7 +251,11 @@ promote_keep_signedness(E val) noexcept
 }
 
 // not used in framework:
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E>>>
+#endif
 [[nodiscard]]
 constexpr auto
 to_underlying(E val) noexcept 
@@ -218,7 +263,11 @@ to_underlying(E val) noexcept
     return static_cast<std::underlying_type_t<E>>(val);
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E>>>
+#endif
 [[nodiscard]]
 constexpr auto
 promote_to_unsigned(E val) noexcept
@@ -228,8 +277,10 @@ promote_to_unsigned(E val) noexcept
 }
 
 // deliberately not std::integral, because of bool and characters!
+#ifdef __cpp_concepts
 template<typename T>
 concept sized_integer = detail_::is_known_integer_v<T>;
+#endif
 
 #ifdef __has_builtin
 #if __has_builtin(__builtin_add_overflow)
@@ -245,7 +296,11 @@ concept sized_integer = detail_::is_known_integer_v<T>;
 namespace detail_ {
 namespace non_builtin {
 // like built-ins __builtin_add_overflow return true on overflow
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool non_builtin_add_overflow(T l, T r, T* result) noexcept {
     if constexpr (std::numeric_limits<T>::is_signed){
@@ -275,7 +330,11 @@ constexpr bool non_builtin_add_overflow(T l, T r, T* result) noexcept {
     }
     return true;
 }
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool non_builtin_sub_overflow(T l, T r, T* result) noexcept {
     if constexpr (std::numeric_limits<T>::is_signed){
@@ -305,7 +364,11 @@ constexpr bool non_builtin_sub_overflow(T l, T r, T* result) noexcept {
     }
     return true;
 }
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool non_builtin_mul_overflow(T l, T r, T* result) noexcept {
     if constexpr (std::numeric_limits<T>::is_signed){
@@ -360,34 +423,58 @@ constexpr bool non_builtin_mul_overflow(T l, T r, T* result) noexcept {
 } // namespace detail_
 
 #ifdef HAVE_GCC_OVERFLOW_CHECKING
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool add_overflow(T l, T r, T* result) noexcept {
     return __builtin_add_overflow(l,r,result);
 }
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool sub_overflow(T l, T r, T* result) noexcept {
     return __builtin_sub_overflow(l,r,result);
 }
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool mul_overflow(T l, T r, T* result) noexcept {
     return __builtin_mul_overflow(l,r,result);
 }
 
 #else // DIY
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool add_overflow(T l, T r, T* result) noexcept {
     return detail_::non_builtin::non_builtin_add_overflow(l,r,result);
 }
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool sub_overflow(T l, T r, T* result) noexcept {
     return detail_::non_builtin::non_builtin_sub_overflow(l,r,result);
 }
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T>
+#endif
 [[nodiscard]]
 constexpr bool mul_overflow(T l, T r, T* result) noexcept {
     return detail_::non_builtin::non_builtin_mul_overflow(l,r,result);
@@ -398,7 +485,12 @@ constexpr bool mul_overflow(T l, T r, T* result) noexcept {
 #endif
 
 
+#ifdef __cpp_concepts
 template<sized_integer TARGET, a_saturatingint E>
+#else
+template<typename TARGET, typename E,
+typename=std::enable_if_t<detail_::is_known_integer_v<TARGET> && detail_::is_saturatingint_v<E>>>
+#endif
 [[nodiscard]]
 constexpr auto
 promote_and_extend_to_unsigned(E val) noexcept
@@ -410,7 +502,11 @@ promote_and_extend_to_unsigned(E val) noexcept
 }
 
 
+#ifdef __cpp_concepts
 template<sized_integer T>
+#else
+template<typename T,typename=std::enable_if_t<detail_::is_known_integer_v<T>>>
+#endif
 [[nodiscard]]
 constexpr auto
 from_int(T val) noexcept {
@@ -429,7 +525,12 @@ from_int(T val) noexcept {
     return static_cast<result_t>(val); // no need to check, result_t corresponds to input T's range
 }
 // path tests are compile-time checked:
+#ifdef __cpp_concepts
 template<a_saturatingint result_t, sized_integer FROM>
+#else
+template<typename result_t, typename FROM,
+typename=std::enable_if_t<detail_::is_known_integer_v<FROM> && detail_::is_saturatingint_v<result_t>>>
+#endif
 [[nodiscard]]
 constexpr auto
 from_int_to(FROM value) noexcept
@@ -471,10 +572,16 @@ from_int_to(FROM value) noexcept
 
 
 // negation for signed types only, two's complement
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E> && std::numeric_limits<ULT<E>>::is_signed>>
+#endif
 constexpr E
 operator-(E l) noexcept
+#ifdef __cpp_concepts
 requires std::numeric_limits<E>::is_signed
+#endif
 {
     if (l == std::numeric_limits<E>::min()) return std::numeric_limits<E>::max();
     return static_cast<E>(1u + ~promote_to_unsigned(l));
@@ -483,14 +590,22 @@ requires std::numeric_limits<E>::is_signed
 
 // increment/decrement
 
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E> >>
+#endif
 constexpr E&
 operator++(E& l) noexcept
 {
     return l = static_cast<E>(1) + l;
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E> >>
+#endif
 constexpr E
 operator++(E& l, int) noexcept
 {
@@ -498,14 +613,22 @@ operator++(E& l, int) noexcept
     ++l;
     return result;
 }
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E> >>
+#endif
 constexpr E&
 operator--(E& l) noexcept
 {
     return l = l - static_cast<E>(1);
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint E>
+#else
+template<typename E, typename=std::enable_if_t<detail_::is_saturatingint_v<E> >>
+#endif
 constexpr E
 operator--(E& l, int) noexcept
 {
@@ -517,11 +640,20 @@ operator--(E& l, int) noexcept
 
 
 // arithmetic
-
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto
 operator+(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     // handle sign extension
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
@@ -543,20 +675,40 @@ requires same_signedness<LEFT,RIGHT>
 }
 
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto&
 operator+=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"psssatin: adding too large integer type");
     l = static_cast<LEFT>(l+r);
     return l;
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto
 operator-(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
     using ult = detail_::ULT<result_t>;
@@ -576,10 +728,20 @@ requires same_signedness<LEFT,RIGHT>
 #endif
     return static_cast<result_t>(result);
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto&
 operator-=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"subtracting too large integer type");
     l = static_cast<LEFT>(l-r);
@@ -587,10 +749,20 @@ requires same_signedness<LEFT,RIGHT>
 }
 
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto
 operator*(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
     using ult = detail_::ULT<result_t>;
@@ -611,38 +783,89 @@ requires same_signedness<LEFT,RIGHT>
 #endif
     return static_cast<result_t>(result);
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, sized_integer RIGHT>
+#else
+template<typename LEFT, typename RIGHT>
+#endif
 constexpr auto
 operator*(LEFT l, RIGHT r)
+#ifndef __cpp_concepts
+-> std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_known_integer_v<RIGHT>
+, LEFT>
+#endif
 {
     return l * from_int_to<LEFT>(r);
 }
+#ifdef __cpp_concepts
 template<sized_integer LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT>
+#endif
 constexpr auto
 operator*(LEFT l, RIGHT r)
+#ifndef __cpp_concepts
+-> std::enable_if_t<
+detail_::is_known_integer_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT>
+, RIGHT>
+#endif
 {
     return from_int_to<RIGHT>(l) * r;
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto&
 operator*=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"multiplying too large integer type");
     l = static_cast<LEFT>(l*r);
     return l;
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, sized_integer RIGHT>
 constexpr auto&
+#else
+template<typename LEFT, typename RIGHT>
+constexpr auto
+#endif
 operator*=(LEFT &l, RIGHT r)
+#ifndef __cpp_concepts
+-> std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_known_integer_v<RIGHT>
+,LEFT&>
+#endif
 {
     return l *= from_int_to<LEFT>(r);
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto
 operator/(LEFT const l, RIGHT const r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
     using ult = detail_::ULT<result_t>;
@@ -665,31 +888,73 @@ requires same_signedness<LEFT,RIGHT>
     }
     return static_cast<result_t>(numerator/denominator);
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, sized_integer RIGHT>
+#else
+template<typename LEFT, typename RIGHT>
+#endif
 constexpr auto
 operator/(LEFT const l, RIGHT const r)
+#ifndef __cpp_concepts
+-> std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_known_integer_v<RIGHT>
+, LEFT>
+#endif
+
 {
     return l / from_int_to<LEFT>(r);
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+detail_::same_signedness_v<LEFT,RIGHT>
+>>
+#endif
 constexpr auto&
 operator/=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires same_signedness<LEFT,RIGHT>
+#endif
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"dividing by too large integer type");
     l = static_cast<LEFT>(l/r);
     return l;
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, sized_integer RIGHT>
 constexpr auto&
+#else
+template<typename LEFT, typename RIGHT>
+constexpr auto
+#endif
 operator/=(LEFT &l, RIGHT r)
+#ifndef __cpp_concepts
+-> std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_known_integer_v<RIGHT>
+,LEFT&>
+#endif
 {
     return l /= from_int_to<LEFT>(r);
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto
 operator%(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
     using ult = detail_::ULT<result_t>;
@@ -702,10 +967,20 @@ requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::U
             )
     );
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto&
 operator%=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     static_assert(sizeof(LEFT) >= sizeof(RIGHT),"dividing by too large integer type");
     l = static_cast<LEFT>(l%r);
@@ -714,73 +989,149 @@ requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::U
 
 // bitwise operators
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto
 operator&(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
     return static_cast<result_t>(promote_keep_signedness(l)&promote_keep_signedness(r));
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto&
 operator&=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     static_assert(sizeof(LEFT) == sizeof(RIGHT),"bitand by different sized integer type");
     l = static_cast<LEFT>(l&r);
     return l;
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto
 operator|(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
     return static_cast<result_t>(promote_keep_signedness(l)|promote_keep_signedness(r));
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto&
 operator|=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     static_assert(sizeof(LEFT) == sizeof(RIGHT),"bitor by different sized integer type");
     l = static_cast<LEFT>(l|r);
     return l;
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto
 operator^(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     using result_t=std::conditional_t<sizeof(LEFT)>=sizeof(RIGHT),LEFT,RIGHT>;
     return static_cast<result_t>(promote_keep_signedness(l)^promote_keep_signedness(r));
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto&
 operator^=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     static_assert(sizeof(LEFT) == sizeof(RIGHT),"xor by different sized integer type");
     l = static_cast<LEFT>(l^r);
     return l;
 }
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT>
+#else
+template<typename LEFT, typename=std::enable_if_t<detail_::is_saturatingint_v<LEFT> && std::is_unsigned_v<ULT<LEFT>>>>
+#endif
 constexpr LEFT
 operator~(LEFT l) noexcept
-requires std::is_unsigned_v<detail_::ULT<LEFT>>
+#ifdef __cpp_concepts
+requires std::is_unsigned_v<ULT<LEFT>>
+#endif
 {
     return static_cast<LEFT>(~promote_keep_signedness(l));
 }
 
 
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr LEFT
 operator<<(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     if( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(LEFT)*CHAR_BIT){
         return static_cast<LEFT>(promote_keep_signedness(l)<<promote_keep_signedness(r));
@@ -788,18 +1139,38 @@ requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::U
         return LEFT{}; // zero
     }
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto&
 operator<<=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     l = (l<<r);
     return l;
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr LEFT
 operator>>(LEFT l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     if( static_cast<size_t>(promote_keep_signedness(r)) < sizeof(LEFT)*CHAR_BIT){
         return static_cast<LEFT>(promote_keep_signedness(l)>>promote_keep_signedness(r));
@@ -807,27 +1178,110 @@ requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::U
         return LEFT{}; // zero
     }
 }
+#ifdef __cpp_concepts
 template<a_saturatingint LEFT, a_saturatingint RIGHT>
+#else
+template<typename LEFT, typename RIGHT, typename=std::enable_if_t<
+detail_::is_saturatingint_v<LEFT> &&
+detail_::is_saturatingint_v<RIGHT> &&
+std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+>>
+#endif
 constexpr auto&
 operator>>=(LEFT &l, RIGHT r) noexcept
+#ifdef __cpp_concepts
 requires std::is_unsigned_v<detail_::ULT<LEFT>> && std::is_unsigned_v<detail_::ULT<RIGHT>>
+#endif
 {
     l = (l>>r);
     return l;
 }
 
-
-std::ostream& operator<<(std::ostream &out, a_saturatingint auto value){
+#ifdef __cpp_concepts
+template<a_saturatingint RIGHT>
+#else
+template<typename RIGHT, typename=std::enable_if_t<detail_::is_saturatingint_v<RIGHT>>>
+#endif
+std::ostream& operator<<(std::ostream &out, RIGHT value){
     out << promote_keep_signedness(value);
     return out;
 }
+#ifndef __cpp_concepts
+namespace detail_{
+template<typename type, typename=std::enable_if_t<is_saturatingint_v<type>> >
+  struct numeric_limits
+  {
+    using ult = ULT<type>;
+    static constexpr bool is_specialized = true;
 
+    static constexpr type
+    min() noexcept { return type{std::numeric_limits<ult>::min()}; }
+
+    static constexpr type
+    max() noexcept { return type{std::numeric_limits<ult>::max()}; }
+
+    static constexpr type
+    lowest() noexcept { return type{std::numeric_limits<ult>::lowest()}; }
+
+    static constexpr int digits = std::numeric_limits<ult>::digits;
+    static constexpr int digits10 = std::numeric_limits<ult>::digits10;
+    static constexpr int max_digits10 = std::numeric_limits<ult>::max_digits10;
+    static constexpr bool is_signed = std::numeric_limits<ult>::is_signed;
+    static constexpr bool is_integer = std::numeric_limits<ult>::is_integer;
+    static constexpr bool is_exact = std::numeric_limits<ult>::is_exact;
+    static constexpr int radix = std::numeric_limits<ult>::radix;
+
+    static constexpr type
+    epsilon() noexcept {  return type{std::numeric_limits<ult>::epsilon()}; }
+
+    static constexpr type
+    round_error() noexcept {  return type{std::numeric_limits<ult>::round_error()}; }
+
+    static constexpr int min_exponent = std::numeric_limits<ult>::min_exponent;
+    static constexpr int min_exponent10 = std::numeric_limits<ult>::min_exponent10;
+    static constexpr int max_exponent = std::numeric_limits<ult>::max_exponent;
+    static constexpr int max_exponent10 = std::numeric_limits<ult>::max_exponent10;
+
+    static constexpr bool has_infinity = std::numeric_limits<ult>::has_infinity;
+    static constexpr bool has_quiet_NaN = std::numeric_limits<ult>::has_quiet_NaN;
+    static constexpr bool has_signaling_NaN = std::numeric_limits<ult>::has_signaling_NaN;
+    static constexpr std::float_denorm_style has_denorm
+     = std::numeric_limits<ult>::has_denorm;
+    static constexpr bool has_denorm_loss = std::numeric_limits<ult>::has_denorm_loss;
+
+    static constexpr type
+    infinity() noexcept { return type{std::numeric_limits<ult>::infinity()}; }
+
+    static constexpr type
+    quiet_NaN() noexcept { return type{std::numeric_limits<ult>::quiet_NaN()}; }
+
+    static constexpr type
+    signaling_NaN() noexcept
+    { return type{std::numeric_limits<ult>::signaling_NaN()}; }
+
+    static constexpr type
+    denorm_min() noexcept
+    { return type{std::numeric_limits<ult>::denorm_min()}; }
+
+
+    static constexpr bool is_iec559 =  std::numeric_limits<ult>::is_iec559;
+    static constexpr bool is_bounded =  std::numeric_limits<ult>::is_bounded;
+    static constexpr bool is_modulo =  false;
+
+    static constexpr bool traps = false;
+    static constexpr bool tinyness_before =  std::numeric_limits<ult>::tinyness_before;
+    static constexpr std::float_round_style round_style =  std::numeric_limits<ult>::round_style;
+  };
+
+
+}
+#endif
 }
 // provide std::numeric_limits
 namespace std {
 
 
-
+#ifdef __cpp_concepts
 template<psssatin::a_saturatingint type>
   struct numeric_limits<type>
   {
@@ -891,6 +1345,23 @@ template<psssatin::a_saturatingint type>
     static constexpr bool tinyness_before =  numeric_limits<ult>::tinyness_before;
     static constexpr float_round_style round_style =  numeric_limits<ult>::round_style;
   };
-
+#else
+template<>
+struct numeric_limits<psssatin::ssi8>: psssatin::detail_::numeric_limits<psssatin::ssi8>{};
+template<>
+struct numeric_limits<psssatin::ssi16>: psssatin::detail_::numeric_limits<psssatin::ssi16>{};
+template<>
+struct numeric_limits<psssatin::ssi32>: psssatin::detail_::numeric_limits<psssatin::ssi32>{};
+template<>
+struct numeric_limits<psssatin::ssi64>: psssatin::detail_::numeric_limits<psssatin::ssi64>{};
+template<>
+struct numeric_limits<psssatin::sui8>: psssatin::detail_::numeric_limits<psssatin::sui8>{};
+template<>
+struct numeric_limits<psssatin::sui16>: psssatin::detail_::numeric_limits<psssatin::sui16>{};
+template<>
+struct numeric_limits<psssatin::sui32>: psssatin::detail_::numeric_limits<psssatin::sui32>{};
+template<>
+struct numeric_limits<psssatin::sui64>: psssatin::detail_::numeric_limits<psssatin::sui64>{};
+#endif
 }
 #endif /* SRC_PSSSATIN_ */

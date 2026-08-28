@@ -770,9 +770,12 @@ check_does_compile(   ,  ssi32, + std::numeric_limits<ssi32>::min() / 1_ssi32  +
 check_does_compile(   ,  ssi32, + std::numeric_limits<ssi32>::min() / -1_ssi32  +) // overflow detected but saturating
 static_assert(std::numeric_limits<ssi32>::min() / 1_ssi32 == std::numeric_limits<ssi32>::min()); // identity
 static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limits<ssi32>::max()); // saturation allows negation by /-1
-
+#ifdef __cpp_concepts
 constexpr auto from_int(auto i){return i;} // cause non-matching code below to SFINAE
-
+#else
+template<typename T>
+constexpr auto from_int(T i){return i;}
+#endif
 check_does_compile(not ,  ssi8, + from_int(' ')  +) // invalid conversion
 check_does_compile(not ,  sui8, + from_int(u' ')  +) // invalid conversion
 check_does_compile(not ,  sui32, + from_int(U' ')  +) // invalid conversion
@@ -1068,7 +1071,7 @@ check_does_compile(    ,  sui64, +  1_sui64 - 1_sui8  +) // same signedness
 
 template<typename T, typename WHAT>
 constexpr bool
-isa = std::is_same_v<std::remove_cvref_t<T>,WHAT>;
+isa = std::is_same_v<std::remove_cv_t<std::remove_reference_t<T>>,WHAT>;
 
 
 template<typename T>
