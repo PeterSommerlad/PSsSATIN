@@ -127,7 +127,8 @@ constexpr auto max_16 { std::numeric_limits<ssi16>::max() };
 constexpr auto max_32 { std::numeric_limits<ssi32>::max() };
 constexpr auto max_64 { std::numeric_limits<ssi64>::max() };
 
-
+#if __cplusplus >= 202002L
+// only used in compilation tests
 constexpr auto maxu_8  { std::numeric_limits<sui8 >::max() };
 constexpr auto maxu_16 { std::numeric_limits<sui16>::max() };
 constexpr auto maxu_32 { std::numeric_limits<sui32>::max() };
@@ -140,7 +141,7 @@ constexpr auto v2u_64 {  2_sui64 };
 constexpr auto v2u_32 {  2_sui32 };
 constexpr auto v2u_16 {  2_sui16 };
 constexpr auto v2u_8  {  2_sui8 };
-
+#endif
 }
 
 static_assert(v1_64 + vminus1_64 == 0_ssi64 );
@@ -500,7 +501,7 @@ static_assert(100_ssi32 / -9_ssi64 == -11_ssi64);
 static_assert(std::numeric_limits<ssi32>::min() / 1_ssi32 == std::numeric_limits<ssi32>::min()); //
 static_assert(std::numeric_limits<ssi32>::min() / -1_ssi32 == std::numeric_limits<ssi32>::max()); //
 
-
+#if __cplusplus >= 202002L
 namespace compile_checks {
 template<auto ...value>
 using consume_value = void; // want value computation
@@ -1064,11 +1065,11 @@ check_does_compile(    ,  sui64, +  1_sui64 - 1_sui8  +) // same signedness
 #undef check_does_compile
 #undef concat_line_impl
 #undef concat_line
-
+#endif // compilation tests with structs require C++20
 
 template<typename T, typename WHAT>
 constexpr bool
-isa = std::is_same_v<std::remove_cvref_t<T>,WHAT>;
+isa = std::is_same_v<std::remove_cv_t<std::remove_reference_t<T>>,WHAT>;
 
 
 template<typename T>
