@@ -1159,7 +1159,7 @@ from_int(T value) noexcept {
 
 #ifndef __cpp_concepts
 namespace detail_{
-template<typename type, typename=std::enable_if_t<is_saturatingint_v<type>,void> >
+template<typename type, typename=std::enable_if_t<is_saturatingint_v<type>> >
   struct numeric_limits
   {
     using ult = ULT<type>;
