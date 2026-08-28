@@ -6,7 +6,9 @@ simple SATurating Integral Numbers
 
 <br/>
 
+New: Scalar multiplication with regular integers is available for easier support of units libraries such as `mp_units`.
 
+A C++17 compatible version is available in branch std17.
 
 I provide two implementations of saturating integer arithmetic for signed and unsigned integers of sizes 8, 16, 32, 64 bits. 
 
